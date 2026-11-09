@@ -1,0 +1,58 @@
+/* Estilos de los paneles (cliente y administrador) */
+:root{
+    --marfil:#FAF6EE; --champana:#F1E3C6; --cafe:#5A3E2B; --oscuro:#3A2415;
+    --dorado:#B8913F; --verde:#CFE8C8; --rojo:#F6C9C9; --amarillo:#F8E2A6;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia,"Times New Roman",serif;background:var(--marfil);color:var(--cafe)}
+
+.topbar{background:var(--oscuro);display:flex;justify-content:space-between;align-items:center;padding:12px 28px}
+.marca{font-size:24px;font-style:italic;color:var(--dorado)}
+
+.btn{display:inline-block;background:var(--dorado);color:#fff;border:none;border-radius:20px;
+     padding:9px 18px;cursor:pointer;font-family:inherit;font-size:14px;text-decoration:none}
+.btn:hover{background:var(--cafe)}
+.btn-claro{background:transparent;color:var(--cafe);border:1px solid var(--dorado)}
+.btn-claro:hover{background:var(--champana)}
+
+/* Si existe Imagenes/salon.jpg se ve la foto; si no, queda el degradado */
+.hero{padding:40px 28px;color:#fff;
+      background:linear-gradient(rgba(58,36,21,.70),rgba(58,36,21,.70)),url('../Imagenes/salon.jpg') center/cover,var(--cafe)}
+.hero h1{margin:0 0 6px;text-align:left;color:#fff;font-size:34px}
+.hero p{margin:0}
+
+.layout{display:flex;min-height:60vh}
+.menu{width:220px;background:var(--oscuro);padding:18px 12px;flex-shrink:0}
+.menu a{display:block;padding:12px 14px;margin-bottom:6px;border-radius:8px;
+        color:var(--champana);text-decoration:none;cursor:pointer}
+.menu a.activo,.menu a:hover{background:var(--dorado);color:#fff}
+.contenido{flex:1;padding:24px 28px}
+h2.titulo{text-align:left;margin:0 0 14px;font-size:22px}
+
+.tarjetas{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}
+.tarjeta{background:var(--champana);border-radius:12px;padding:18px;text-align:center}
+.tarjeta b{display:block;font-size:26px;color:var(--dorado)}
+
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+th,td{padding:12px;text-align:left;border-bottom:1px solid var(--champana)}
+th{background:var(--marfil)}
+.estado{padding:3px 12px;border-radius:12px;font-size:13px}
+.Pendiente{background:var(--amarillo)}
+.Confirmada,.Aprobada{background:var(--verde)}
+.Cancelada,.Rechazada{background:var(--rojo)}
+
+.seccion{display:none}
+.seccion.visible{display:block}
+.cabecera{display:flex;justify-content:space-between;align-items:center}
+.cabecera a{color:var(--dorado);cursor:pointer}
+.salon{margin-top:26px;background:var(--champana);border-radius:12px;padding:20px}
+.perfil p{margin:8px 0}
+
+dialog{border:1px solid var(--dorado);border-radius:12px;color:var(--cafe);padding:22px;min-width:280px}
+dialog::backdrop{background:rgba(58,36,21,.5)}
+
+@media(max-width:700px){
+    .layout{flex-direction:column}
+    .menu{width:100%}
+    .tarjetas{grid-template-columns:1fr}
+}

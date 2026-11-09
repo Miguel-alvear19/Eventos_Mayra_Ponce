@@ -1,0 +1,9 @@
+/* Colores extra solo para el Login (se carga después de auth.css) */
+body{background:linear-gradient(135deg,#3A2415 0%,#6B4A2A 55%,#B8913F 100%);background-attachment:fixed}
+.nav{background:#3A2415;border-bottom:3px solid var(--dorado)}
+.nav .marca{color:var(--champana)}
+.nav a{color:var(--champana)}
+.nav a:hover{color:#E7C873}
+.foto{border:3px solid var(--dorado);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.tarjeta-auth{box-shadow:0 10px 30px rgba(0,0,0,.35);border-top:6px solid var(--dorado)}
+.pie{color:var(--champana)}
