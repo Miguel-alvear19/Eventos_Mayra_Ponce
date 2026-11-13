@@ -1,80 +1,66 @@
-<?php ob_start(); // permite redirigir con header() aunque ya haya HTML antes ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Iniciar sesión | Eventos Mayra Ponce</title>
-    <link rel="stylesheet" href="../Styles/auth.css">
-    <link rel="stylesheet" href="../Styles/login.css">
-</head>
-<body>
+<?php
+require_once dirname(__DIR__) . "/Config/helpers.php";
+require_once dirname(__DIR__) . "/controllers/ClienteController.php";
 
-<header class="nav">
-    <div class="marca">Eventos<br>Mayra Ponce</div>
-    <ul>
-        <li><a href="#">Inicio</a></li>
-        <li><a href="#">Servicios</a></li>
-        <li><a href="#">Galería</a></li>
-        <li><a href="#">El salón</a></li>
-        <li><a href="#">Contacto</a></li>
-    </ul>
-</header>
+// Si ya hay sesión, no tiene sentido mostrar el login
+if (esAdmin())   redirigir('PanelAdmin.php');
+if (esCliente()) redirigir('PanelCliente.php');
 
-<main class="escena">
+$error = '';
+if (isset($_POST['btnLogin'])) {
+    $controlador = new ClienteController();
+    $error = $controlador->loginCliente();   // si es correcto, redirige y no vuelve aquí
+}
 
-    <div class="foto"></div>
+$titulo = 'Iniciar sesión';
+require "partials/head.php";
+require "partials/nav.php";
+?>
+<main class="escena foto-angosta">
 
-    <form method="POST" class="tarjeta-auth">
+    <div class="foto foto-login"><span class="cita">Bienvenido</span></div>
+
+    <form method="POST" class="tarjeta-auth" data-un-envio>
         <h1>Iniciar sesión</h1>
         <p class="sub">Bienvenido de nuevo</p>
-        <hr>
+        <span class="divisor"></span>
+
+        <?= mostrarFlash() ?>
+        <?php if ($error): ?><div class="alerta alerta-error" role="alert"><?= e($error) ?></div><?php endif; ?>
+
+        <label class="campo">
+            <?= icono('correo') ?>
+            <span class="oculto-visual">Correo electrónico</span>
+            <input type="email" name="correo" placeholder="Correo electrónico" value="<?= e(valorPost('correo')) ?>" autocomplete="email" required autofocus>
+        </label>
 
         <div class="campo">
-            <span>✉</span>
-            <input type="email" name="correo" placeholder="Correo electrónico" required>
-        </div>
-
-        <div class="campo">
-            <span>🔒</span>
-            <input type="password" name="password" id="clave" placeholder="Contraseña" required>
-            <button type="button" onclick="verClave()" title="Mostrar u ocultar contraseña">👁</button>
+            <?= icono('candado') ?>
+            <label for="clave" class="oculto-visual">Contraseña</label>
+            <input type="password" name="password" id="clave" placeholder="Contraseña" autocomplete="current-password" required>
+            <button type="button" class="campo-boton" onclick="verClave('clave', this)" aria-label="Mostrar contraseña"><?= icono('ojo') ?></button>
         </div>
 
         <div class="fila">
-            <label><input type="checkbox"> Recordarme</label>
-            <a href="#">¿Olvidaste tu contraseña?</a>
+            <label class="casilla"><input type="checkbox" name="recordar"> Recordarme</label>
+            <a href="#" onclick="abrirModal('olvido');return false">¿Olvidaste tu contraseña?</a>
         </div>
 
-        <button type="submit" name="btnLogin" class="btn-principal">Ingresar</button>
+        <button type="submit" name="btnLogin" class="btn btn-grande">Ingresar</button>
 
         <p class="pie-tarjeta">¿No tienes cuenta? <a href="Registro.php">Crear cuenta</a></p>
-
-        <!-- TEMPORAL: acceso directo para la demo, se elimina mañana -->
-        <p class="demo"><a href="PanelCliente.php">Entrar a la demo como cliente</a></p>
     </form>
 
 </main>
 
-<footer class="pie">Eventos inolvidables, hechos a tu medida</footer>
+<dialog id="olvido" class="modal">
+    <div class="modal-cabeza"><h3>¿Olvidaste tu contraseña?</h3>
+        <button type="button" onclick="this.closest('dialog').close()" aria-label="Cerrar"><?= icono('x') ?></button></div>
+    <div class="modal-cuerpo">
+        <p>Escríbenos y te ayudamos a recuperar el acceso a tu cuenta:</p>
+        <p><?= icono('correo') ?> <a href="mailto:<?= e(NEGOCIO_CORREO) ?>?subject=Recuperar%20contrase%C3%B1a"><?= e(NEGOCIO_CORREO) ?></a></p>
+        <p><?= icono('whatsapp') ?> <a target="_blank" rel="noopener" href="https://wa.me/<?= NEGOCIO_WHATSAPP ?>">WhatsApp <?= e(NEGOCIO_TELEFONO) ?></a></p>
+    </div>
+</dialog>
 
-<script>
-function verClave() {
-    const c = document.getElementById('clave');
-    c.type = (c.type === 'password') ? 'text' : 'password';
-}
-</script>
-
-<?php
-require_once "../controllers/ClienteController.php";
-
-if(isset($_POST['btnLogin'])){
-
-    $controlador = new ClienteController();
-    $controlador->loginCliente();
-
-}
-?>
-
-</body>
-</html>
+<?php require "partials/pie.php"; ?>

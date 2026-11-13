@@ -1,87 +1,77 @@
-<?php ob_start(); ?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Crear cuenta | Eventos Mayra Ponce</title>
-    <link rel="stylesheet" href="../Styles/auth.css">
-</head>
-<body>
+<?php
+require_once dirname(__DIR__) . "/Config/helpers.php";
+require_once dirname(__DIR__) . "/controllers/ClienteController.php";
 
-<header class="nav">
-    <div class="marca">Eventos<br>Mayra Ponce</div>
-    <ul>
-        <li><a href="#">Inicio</a></li>
-        <li><a href="#">Servicios</a></li>
-        <li><a href="#">Galería</a></li>
-        <li><a href="#">El salón</a></li>
-        <li><a href="#">Contacto</a></li>
-    </ul>
-</header>
+if (esCliente()) redirigir('PanelCliente.php');
 
+$errores = [];
+if (isset($_POST['btnRegistrar'])) {
+    $controlador = new ClienteController();
+    $errores = $controlador->registrarCliente();   // si todo sale bien, redirige al panel
+}
+
+$titulo = 'Crear cuenta';
+require "partials/head.php";
+require "partials/nav.php";
+?>
 <main class="escena">
 
-    <div class="foto ancha"></div>
+    <div class="foto foto-registro"><span class="cita">Tu evento comienza aquí</span></div>
 
-    <form method="POST" class="tarjeta-auth" onsubmit="return revisarClaves()">
+    <form method="POST" class="tarjeta-auth" data-un-envio
+          oninput="document.getElementById('clave2').setCustomValidity(clave2.value && clave1.value !== clave2.value ? 'Las contraseñas no coinciden' : '')">
         <h1>Crear cuenta</h1>
         <p class="sub">Regístrate para gestionar tus solicitudes</p>
-        <hr>
+        <span class="divisor"></span>
 
-        <div class="campo"><span>👤</span>
-            <input type="text" name="nombre" placeholder="Nombre completo" required></div>
+        <?php if ($errores): ?>
+            <div class="alerta alerta-error" role="alert">
+                <?php if (count($errores) === 1): ?><?= e($errores[0]) ?>
+                <?php else: ?><ul><?php foreach ($errores as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul><?php endif; ?>
+            </div>
+        <?php endif; ?>
 
-        <div class="campo"><span>✉</span>
-            <input type="email" name="correo" placeholder="Correo electrónico" required></div>
+        <label class="campo"><?= icono('usuario') ?><span class="oculto-visual">Nombre completo</span>
+            <input type="text" name="nombre" placeholder="Nombre completo" value="<?= e(valorPost('nombre')) ?>" autocomplete="name" required minlength="3"></label>
 
-        <div class="campo"><span>📞</span>
-            <input type="text" name="telefono" placeholder="Teléfono (opcional)"></div>
+        <label class="campo"><?= icono('correo') ?><span class="oculto-visual">Correo electrónico</span>
+            <input type="email" name="correo" placeholder="Correo electrónico" value="<?= e(valorPost('correo')) ?>" autocomplete="email" required></label>
 
-        <div class="campo"><span>🔒</span>
-            <input type="password" name="password" id="clave1" placeholder="Contraseña" required></div>
+        <label class="campo"><?= icono('telefono') ?><span class="oculto-visual">Teléfono</span>
+            <input type="tel" name="telefono" placeholder="Teléfono (opcional)" value="<?= e(valorPost('telefono')) ?>" autocomplete="tel"></label>
 
-        <div class="campo"><span>🔒</span>
-            <input type="password" name="confirmar" id="clave2" placeholder="Confirmar contraseña" required></div>
+        <div class="campo"><?= icono('candado') ?>
+            <label for="clave1" class="oculto-visual">Contraseña</label>
+            <input type="password" name="password" id="clave1" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="new-password" required minlength="6">
+            <button type="button" class="campo-boton" onclick="verClave('clave1', this)" aria-label="Mostrar contraseña"><?= icono('ojo') ?></button></div>
 
-        <label class="terminos"><input type="checkbox" required> Acepto los términos y condiciones</label>
+        <div class="campo"><?= icono('candado') ?>
+            <label for="clave2" class="oculto-visual">Confirmar contraseña</label>
+            <input type="password" name="confirmar" id="clave2" placeholder="Confirmar contraseña" autocomplete="new-password" required></div>
 
-        <button type="submit" name="btnRegistrar" class="btn-principal">Crear cuenta</button>
+        <label class="casilla" style="margin:4px 0 18px">
+            <input type="checkbox" name="terminos" required <?= isset($_POST['terminos']) ? 'checked' : '' ?>>
+            <span>Acepto los <a href="#" onclick="abrirModal('terminos');return false">términos y condiciones</a></span>
+        </label>
+
+        <button type="submit" name="btnRegistrar" class="btn btn-grande">Crear cuenta</button>
 
         <p class="pie-tarjeta">¿Ya tienes cuenta? <a href="Login.php">Iniciar sesión</a></p>
     </form>
 
 </main>
 
-<?php
-require_once "../controllers/ClienteController.php";
+<dialog id="terminos" class="modal">
+    <div class="modal-cabeza"><h3>Términos y condiciones</h3>
+        <button type="button" onclick="this.closest('dialog').close()" aria-label="Cerrar"><?= icono('x') ?></button></div>
+    <div class="modal-cuerpo">
+        <p>Al crear tu cuenta aceptas que Eventos Mayra Ponce use tus datos (nombre, correo y teléfono) únicamente
+           para gestionar tus reservas y cotizaciones y para contactarte sobre ellas.</p>
+        <p>Una reserva solo queda confirmada cuando el salón la aprueba. Las solicitudes pendientes pueden cancelarse
+           desde tu panel en cualquier momento.</p>
+        <p>Puedes pedir la eliminación de tus datos escribiendo a <?= e(NEGOCIO_CORREO) ?>.</p>
+    </div>
+    <div class="modal-pie"><button class="btn" type="button" onclick="this.closest('dialog').close()">Entendido</button></div>
+</dialog>
 
-if(isset($_POST['btnRegistrar'])){
-
-    if($_POST['password'] !== $_POST['confirmar']){
-        echo '<p class="aviso">Las contraseñas no coinciden</p>';
-    }else{
-        // El mockup pide "Nombre completo": lo partimos en nombres y apellidos
-        $partes = explode(' ', trim($_POST['nombre']), 2);
-        $_POST['nombres'] = $partes[0];
-        $_POST['apellidos'] = $partes[1] ?? '';
-
-        $controlador = new ClienteController();
-        $controlador->registrarCliente();
-    }
-}
-?>
-
-<footer class="pie">Eventos Mayra Ponce · Hacemos realidad tus momentos</footer>
-
-<script>
-function revisarClaves() {
-    if (document.getElementById('clave1').value !== document.getElementById('clave2').value) {
-        alert('Las contraseñas no coinciden');
-        return false;
-    }
-    return true;
-}
-</script>
-</body>
-</html>
+<?php require "partials/pie.php"; ?>
