@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . "/Config/helpers.php";
 require_once dirname(__DIR__) . "/controllers/ReservaController.php";
 
-requiereCliente();
+requiereCliente('Para reservar tu fecha inicia sesión o crea tu cuenta. Solo te pediremos tus datos una vez.');
 
 $errores = [];
 if (isset($_POST['btnReservar'])) {
@@ -16,6 +16,12 @@ $noDisponibles = array_values(array_unique(array_merge(
 )));
 
 $serviciosElegidos = $_POST['servicios'] ?? [];
+
+// Datos de la cuenta: se muestran, no se vuelven a pedir
+$cliente       = (new Cliente())->obtenerPorId($_SESSION['id_cliente']);
+$nombreCuenta  = trim($cliente['nombres'] . ' ' . $cliente['apellidos']);
+$faltaTelefono = trim((string)$cliente['telefono']) === '';
+$tipoElegido   = valorPost('tipo', $_GET['tipo'] ?? '');
 $iconosServicio = [
     'Decoración' => 'flor', 'Mobiliario y menaje' => 'silla', 'Catering' => 'cubiertos',
     'Sonido e iluminación' => 'musica', 'Fotografía y video' => 'camara', 'Logística completa' => 'brillo',
@@ -51,12 +57,27 @@ require "partials/nav.php";
 
         <!-- PASO 1 -->
         <div class="contenido-paso">
+            <div class="cuenta-ficha">
+                <span class="avatar-mini"><?= e(mb_strtoupper(mb_substr($cliente['nombres'], 0, 1))) ?></span>
+                <div class="datos">
+                    <span class="rotulo">Reservando como</span>
+                    <strong><?= e($nombreCuenta) ?></strong>
+                    <span><?= e($cliente['correo']) ?><?= $faltaTelefono ? '' : ' · ' . e($cliente['telefono']) ?></span>
+                </div>
+                <a class="cambiar" href="PanelCliente.php?seccion=perfil">Editar mis datos</a>
+            </div>
+
+            <?php if ($faltaTelefono): ?>
+                <div class="pide-telefono">
+                    <label class="etiqueta" for="telefono">Tu teléfono o WhatsApp <span class="req">*</span></label>
+                    <div class="campo"><?= icono('whatsapp') ?><input type="tel" id="telefono" name="telefono" value="<?= e(valorPost('telefono')) ?>"
+                         placeholder="Ej. 318 000 0000" pattern="[0-9 +()\-]{7,20}" required></div>
+                    <p class="ayuda">Lo guardamos en tu cuenta, así no te lo volvemos a pedir.</p>
+                </div>
+            <?php endif; ?>
+
             <h2>Información del evento</h2>
             <div class="rejilla">
-                <div><label class="etiqueta" for="nombre">Nombre completo <span class="req">*</span></label>
-                    <div class="campo"><input type="text" id="nombre" name="nombre" value="<?= e(valorPost('nombre', $_SESSION['nombre'])) ?>" placeholder="Tu nombre" required></div></div>
-                <div><label class="etiqueta" for="correo">Correo electrónico <span class="req">*</span></label>
-                    <div class="campo"><input type="email" id="correo" name="correo" value="<?= e(valorPost('correo', $_SESSION['correo'])) ?>" placeholder="tu@correo.com" required></div></div>
                 <div><label class="etiqueta" for="fecha">Fecha del evento <span class="req">*</span></label>
                     <div class="campo"><input type="date" id="fecha" name="fecha" min="<?= date('Y-m-d', strtotime('+1 day')) ?>" value="<?= e(valorPost('fecha')) ?>" required></div>
                     <p class="aviso-fecha" id="aviso-fecha">Ese día el salón no está disponible. Por favor elige otra fecha.</p></div>
@@ -66,18 +87,22 @@ require "partials/nav.php";
                     <div class="campo"><select id="tipo" name="tipo" required>
                         <option value="">Selecciona un tipo</option>
                         <?php foreach (TIPOS_EVENTO as $t): ?>
-                            <option <?= valorPost('tipo') === $t ? 'selected' : '' ?>><?= $t ?></option>
+                            <option <?= $tipoElegido === $t ? 'selected' : '' ?>><?= $t ?></option>
                         <?php endforeach; ?>
                     </select></div></div>
                 <div><label class="etiqueta" for="invitados">Número de invitados <span class="req">*</span></label>
-                    <div class="campo"><input type="number" id="invitados" name="invitados" min="1" max="<?= NEGOCIO_CAPACIDAD ?>" placeholder="Ej. 80" value="<?= e(valorPost('invitados')) ?>" required></div></div>
+                    <div class="campo"><input type="number" id="invitados" name="invitados" min="1" max="500" placeholder="Ej. 80" value="<?= e(valorPost('invitados')) ?>" required></div>
+                    <p class="ayuda">Nuestros paquetes son desde 30 personas.</p></div>
+                <div class="ancho"><label class="etiqueta" for="tematica">Temática que imaginas</label>
+                    <div class="campo"><input type="text" id="tematica" name="tematica" maxlength="120" value="<?= e(valorPost('tematica')) ?>"
+                         placeholder="Ej. Princesas, mediterráneo, dorado y blanco, vintage..."></div></div>
                 <div class="ancho"><label class="etiqueta" for="notas">Notas adicionales</label>
                     <textarea class="area" id="notas" name="notas" rows="3" maxlength="1000" placeholder="Cuéntanos más sobre tu evento..."><?= e(valorPost('notas')) ?></textarea></div>
             </div>
             <div class="fotos">
-                <img src="../Imagenes/galeria1.jpg" alt="" loading="lazy">
-                <img src="../Imagenes/galeria2.jpg" alt="" loading="lazy">
-                <img src="../Imagenes/galeria3.jpg" alt="" loading="lazy">
+                <img src="../Imagenes/evento_boda_altar.jpg" alt="" loading="lazy">
+                <img src="../Imagenes/arco_globos.jpg" alt="" loading="lazy">
+                <img src="../Imagenes/fondo_castillo.jpg" alt="" loading="lazy">
             </div>
             <div class="acciones"><button type="button" class="btn" onclick="siguiente()">Continuar <?= icono('flecha') ?></button></div>
         </div>
@@ -85,7 +110,7 @@ require "partials/nav.php";
         <!-- PASO 2 -->
         <div class="contenido-paso" hidden>
             <h2>¿Qué servicios necesitas?</h2>
-            <p class="ayuda" style="margin-top:-8px">Selecciona todos los que quieras; los cotizamos junto con tu reserva.</p>
+            <p class="ayuda" style="margin-top:-8px">Marca los que te interesan. Los cotizamos contigo cuando tu fecha quede confirmada.</p>
             <div class="opciones-servicio">
                 <?php foreach (SERVICIOS as $s): ?>
                     <label class="opcion"><input type="checkbox" name="servicios[]" value="<?= $s ?>" <?= in_array($s, $serviciosElegidos, true) ? 'checked' : '' ?>>
@@ -102,7 +127,7 @@ require "partials/nav.php";
         <div class="contenido-paso" hidden>
             <h2>Confirma tu solicitud</h2>
             <div class="resumen"><dl id="resumen"></dl></div>
-            <p class="ayuda" style="margin:14px 0 0">Tu reserva quedará <b>Pendiente</b> hasta que el salón la apruebe. Te avisaremos por correo.</p>
+            <p class="ayuda" style="margin:14px 0 0">Tu solicitud quedará <b>Pendiente</b> mientras la revisamos. Al enviarla verás su seguimiento paso a paso en tu panel.</p>
             <div class="acciones">
                 <button type="button" class="btn btn-borde" onclick="ir(2)"><?= icono('izquierda') ?> Atrás</button>
                 <button type="submit" name="btnReservar" class="btn"><?= icono('enviar') ?> Enviar solicitud</button>
@@ -114,6 +139,7 @@ require "partials/nav.php";
 <script>
 const NO_DISPONIBLES = <?= json_encode($noDisponibles) ?>;
 const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const CUENTA = <?= json_encode(['nombre' => $nombreCuenta, 'correo' => $cliente['correo'], 'telefono' => (string)$cliente['telefono']], JSON_UNESCAPED_UNICODE) ?>;
 const pasos = document.querySelectorAll('.contenido-paso');
 const fecha = document.getElementById('fecha');
 let paso = 1;
@@ -162,10 +188,12 @@ function texto(t) { const s = document.createElement('span'); s.textContent = t;
 
 function resumen() {
     const servicios = [...document.querySelectorAll('.opcion input:checked')].map(c => c.value);
+    const tel = CUENTA.telefono || (document.getElementById('telefono') ? valor('telefono') : '');
     const filas = [
-        ['Nombre', valor('nombre')],
-        ['Correo', valor('correo')],
+        ['A nombre de', CUENTA.nombre],
+        ['Contacto', CUENTA.correo + (tel ? ' · ' + tel : '')],
         ['Evento', valor('tipo') + ' · ' + valor('invitados') + ' invitados'],
+        ['Temática', valor('tematica') || 'Por definir'],
         ['Fecha y hora', fechaBonita(valor('fecha')) + ', ' + horaBonita(valor('hora'))],
         ['Servicios', servicios.length ? servicios.join(', ') : 'Ninguno seleccionado'],
         ['Notas', valor('notas') || '—'],

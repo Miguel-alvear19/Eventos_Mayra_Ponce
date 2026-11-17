@@ -52,7 +52,21 @@ class AdminController {
             }
         }
         $reserva->cambiarEstado($id, $estado);
-        flash('exito', 'La reserva de ' . $datos['nombre_contacto'] . ' quedó ' . strtolower($estado) . '.');
+
+        // El salón atiende un evento por día: al confirmar uno, las demás solicitudes
+        // pendientes de esa fecha se rechazan y el cliente lo ve como "Fecha no disponible"
+        $otras = 0;
+        if ($estado === 'Aprobada') {
+            $otras = $reserva->rechazarOtrasDelDia($datos['fecha_evento'], $id);
+        }
+
+        $mensaje = 'La reserva de ' . $datos['nombre_contacto'] . ' quedó ' . ($estado === 'Aprobada' ? 'confirmada' : 'rechazada') . '.';
+        if ($otras > 0) {
+            $mensaje .= ' ' . ($otras === 1 ? 'La otra solicitud' : "Las otras $otras solicitudes")
+                      . ' del ' . fechaNumerica($datos['fecha_evento']) . ($otras === 1 ? ' se rechazó' : ' se rechazaron')
+                      . ' automáticamente.';
+        }
+        flash('exito', $mensaje);
     }
 
     private function responderCotizacion() {

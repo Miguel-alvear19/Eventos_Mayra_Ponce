@@ -10,8 +10,10 @@ $pie = $pie ?? 'simple';
     <div class="pie-contacto">
         <a href="tel:<?= preg_replace('/\s+/', '', NEGOCIO_TELEFONO) ?>"><?= icono('telefono') ?> <?= e(NEGOCIO_TELEFONO) ?></a>
         <span class="sep"></span>
+        <?php if (NEGOCIO_CORREO !== ''): ?>
         <a href="mailto:<?= e(NEGOCIO_CORREO) ?>"><?= icono('correo') ?> <?= e(NEGOCIO_CORREO) ?></a>
         <span class="sep"></span>
+        <?php endif; ?>
         <a href="Home.php#contacto"><?= icono('ubicacion') ?> Ubicación</a>
         <div class="redes">
             <?php foreach (REDES as $red => $url): ?>
@@ -19,7 +21,11 @@ $pie = $pie ?? 'simple';
             <?php endforeach; ?>
         </div>
     </div>
-    <div class="pie-final">Eventos Mayra Ponce · Hacemos realidad tus momentos · © <?= date('Y') ?></div>
+    <div class="pie-marca">
+        <img src="<?= recurso('Imagenes/logo-claro.png') ?>" alt="Eventos Mayra Ponce" width="230" height="81">
+        <p>La vida son momentos. ¡Celébralos!</p>
+    </div>
+    <div class="pie-final">Eventos Mayra Ponce · © <?= date('Y') ?></div>
 </footer>
 <?php else: ?>
 <footer class="pie-simple">
@@ -29,6 +35,6 @@ $pie = $pie ?? 'simple';
     </div>
 </footer>
 <?php endif; ?>
-<script src="../Js/app.js"></script>
+<script src="<?= recurso('Js/app.js') ?>"></script>
 </body>
 </html>

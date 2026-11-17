@@ -16,10 +16,10 @@ $claseBody = $claseBody ?? '';
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B8893A' stroke-width='2'><path d='M2 18h20l-2-11-5 5-3-7-3 7-5-5z'/></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lato:wght@400;700&family=Playfair+Display:wght@400;500;600&display=swap">
-    <link rel="stylesheet" href="../Styles/main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&family=Lato:wght@400;700&family=Playfair+Display:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="<?= recurso('Styles/main.css') ?>">
 <?php foreach ($estilos as $hoja): ?>
-    <link rel="stylesheet" href="../Styles/<?= e($hoja) ?>">
+    <link rel="stylesheet" href="<?= recurso('Styles/' . $hoja) ?>">
 <?php endforeach; ?>
 </head>
 <body class="<?= e($claseBody) ?>">

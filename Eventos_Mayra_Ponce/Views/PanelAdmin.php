@@ -16,15 +16,24 @@ $bloqueoM    = new FechaBloqueada();
 $porEstado          = $reservaM->contarPorEstado();
 $cotizacionesPend   = $cotizacionM->contarPendientes();
 
+// Pendientes agrupadas por fecha: si un día tiene 2 o más (o ya está ocupado) es un conflicto
+$pendientesFut   = $reservaM->pendientesFuturas();
+$porFecha        = [];
+foreach ($pendientesFut as $r) $porFecha[$r['fecha_evento']][] = $r;
+$diasConflicto   = array_filter($porFecha, fn($g) => count($g) > 1 || (int)$g[0]['dia_ocupado'] > 0);
+$pendientesSolas = array_merge([], ...array_values(array_diff_key($porFecha, $diasConflicto)));
+
 $secciones = [
+    'inicio'        => ['Resumen',       'casa',       0],
+    'decisiones'    => ['Decisiones',    'check',      count($pendientesFut)],
     'calendario'    => ['Calendario',    'calendario', 0],
-    'reservas'      => ['Reservas',      'lista',      $porEstado['Pendiente']],
+    'reservas'      => ['Reservas',      'lista',      0],
     'cotizaciones'  => ['Cotizaciones',  'documento',  $cotizacionesPend],
     'clientes'      => ['Clientes',      'usuarios',   0],
     'reportes'      => ['Reportes',      'grafica',    0],
     'configuracion' => ['Configuración', 'ajustes',    0],
 ];
-$seccion = isset($secciones[$_GET['seccion'] ?? '']) ? $_GET['seccion'] : 'calendario';
+$seccion = isset($secciones[$_GET['seccion'] ?? '']) ? $_GET['seccion'] : 'inicio';
 $query   = $_SERVER['QUERY_STRING'] ?? '';
 $volver  = 'PanelAdmin.php' . ($query !== '' ? '?' . $query : '');
 $hoy     = date('Y-m-d');
@@ -86,9 +95,216 @@ require "partials/nav.php";
 
 <?php
 /* =====================================================
+   RESUMEN (lo primero que ve el administrador)
+   ===================================================== */
+if ($seccion === 'inicio'):
+    $ind        = $reservaM->indicadores();
+    $decididas  = (int)$ind['aprobadas'] + (int)$ind['rechazadas'];
+    $tasa       = $decididas ? round($ind['aprobadas'] / $decididas * 100) : null;
+    $proximos   = $reservaM->proximosConfirmados(5);
+    $actividad  = $reservaM->actividadSeisMeses();
+    $maxAct     = max(1, ...array_values(array_map(fn($m) => $m["recibidas"], $actividad)));
+    $porTipo    = $reservaM->contarPorTipo();
+    $totalTipos = array_sum(array_column($porTipo, 'n')) ?: 1;
+?>
+        <div class="cabecera">
+            <h2><?= icono('casa') ?> Resumen</h2>
+            <span class="sub-dato">Actualizado <?= fechaCorta($hoy) ?>, <?= date('g:i a') ?></span>
+        </div>
+
+        <?php if ($diasConflicto): ?>
+            <a class="aviso-conflicto" href="?seccion=decisiones">
+                <span class="icono-aviso">!</span>
+                <span><b><?= count($diasConflicto) ?> <?= count($diasConflicto) === 1 ? 'fecha tiene' : 'fechas tienen' ?> varias solicitudes a la vez.</b>
+                      Decide cuál se queda con el día.</span>
+                <span class="ir">Ir a decisiones <?= icono('flecha') ?></span>
+            </a>
+        <?php endif; ?>
+
+        <div class="kpis">
+            <a class="kpi destacado" href="?seccion=decisiones">
+                <span class="kpi-nombre">Por revisar</span>
+                <b><?= (int)$ind['por_revisar'] ?></b>
+                <span class="kpi-nota">solicitudes pendientes</span>
+            </a>
+            <div class="kpi">
+                <span class="kpi-nombre">Confirmados este mes</span>
+                <b><?= (int)$ind['confirmados_mes'] ?></b>
+                <span class="kpi-nota"><?= (int)$ind['confirmados_futuros'] ?> eventos próximos en total</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-nombre">Tasa de aprobación</span>
+                <b><?= $tasa === null ? '—' : $tasa . '%' ?></b>
+                <span class="kpi-nota"><?= (int)$ind['aprobadas'] ?> aprobadas de <?= $decididas ?> decididas</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-nombre">Solicitudes · 30 días</span>
+                <b><?= (int)$ind['solicitudes_30'] ?></b>
+                <span class="kpi-nota"><?= (int)$ind['realizados'] ?> eventos realizados en total</span>
+            </div>
+        </div>
+
+        <div class="resumen-grid">
+            <section class="caja">
+                <div class="caja-cabeza">
+                    <h3>Solicitudes y confirmaciones</h3>
+                    <span class="leyenda-mini"><i class="s1"></i> Recibidas <i class="s2"></i> Confirmadas</span>
+                </div>
+                <div class="actividad" role="img" aria-label="Solicitudes recibidas y confirmadas en los últimos seis meses">
+                    <?php foreach ($actividad as $ym => $m): [$a, $mm] = explode('-', $ym); ?>
+                        <div class="act-mes" title="<?= MESES[(int)$mm - 1] ?>: <?= $m['recibidas'] ?> recibidas, <?= $m['confirmadas'] ?> confirmadas">
+                            <div class="act-barras">
+                                <span class="s1" style="--h:<?= round($m['recibidas'] / $maxAct * 100) ?>%"><em><?= $m['recibidas'] ?: '' ?></em></span>
+                                <span class="s2" style="--h:<?= round($m['confirmadas'] / $maxAct * 100) ?>%"><em><?= $m['confirmadas'] ?: '' ?></em></span>
+                            </div>
+                            <small><?= substr(MESES[(int)$mm - 1], 0, 3) ?></small>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+
+            <section class="caja">
+                <div class="caja-cabeza"><h3>Tipos de evento</h3></div>
+                <div class="tipos-lista">
+                    <?php foreach (array_slice($porTipo, 0, 6) as $t): $pct = round($t['n'] / $totalTipos * 100); ?>
+                        <div class="tipo-fila">
+                            <span><?= e($t['tipo_evento']) ?></span>
+                            <div class="pista"><div class="relleno" style="width:<?= $pct ?>%"></div></div>
+                            <b><?= (int)$t['n'] ?></b>
+                        </div>
+                    <?php endforeach; ?>
+                    <?php if (!$porTipo): ?><p class="vacio">Sin datos todavía.</p><?php endif; ?>
+                </div>
+            </section>
+        </div>
+
+        <div class="cabecera" style="margin-top:8px">
+            <h2 style="font-size:22px"><?= icono('calendario') ?> Próximos eventos confirmados</h2>
+            <a class="enlace-flecha" href="?seccion=calendario">Ver calendario <?= icono('flecha') ?></a>
+        </div>
+        <div class="agenda">
+            <?php foreach ($proximos as $p): $faltan = diasPara($p['fecha_evento']); ?>
+                <div class="agenda-item">
+                    <div class="agenda-fecha"><b><?= date('d', strtotime($p['fecha_evento'])) ?></b><span><?= substr(MESES[date('n', strtotime($p['fecha_evento'])) - 1], 0, 3) ?></span></div>
+                    <div class="agenda-info">
+                        <strong><?= e($p['tipo_evento']) ?> · <?= e($p['nombre_contacto']) ?></strong>
+                        <span><?= horaBonita($p['hora_evento']) ?> · <?= (int)$p['invitados'] ?> invitados · <?= numeroReserva($p['id_reserva']) ?></span>
+                    </div>
+                    <span class="agenda-cuenta <?= $faltan <= 8 ? 'pronto' : '' ?>"><?= $faltan === 0 ? 'Hoy' : ($faltan === 1 ? 'Mañana' : 'En ' . $faltan . ' días') ?></span>
+                    <?php if ($p['telefono']): ?>
+                        <a class="agenda-wa" target="_blank" rel="noopener" title="Escribir por WhatsApp"
+                           href="https://wa.me/57<?= preg_replace('/\D/', '', $p['telefono']) ?>"><?= icono('whatsapp') ?></a>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+            <?php if (!$proximos): ?><div class="caja vacio">No hay eventos confirmados próximamente.</div><?php endif; ?>
+        </div>
+
+<?php
+/* =====================================================
+   BANDEJA DE DECISIONES
+   Fechas con varias solicitudes: se comparan lado a lado y al aprobar
+   una, las demás de ese día se rechazan solas (AdminController).
+   ===================================================== */
+elseif ($seccion === 'decisiones'):
+?>
+        <div class="cabecera">
+            <h2><?= icono('check') ?> Bandeja de decisiones</h2>
+            <span class="sub-dato"><?= count($pendientesFut) ?> <?= count($pendientesFut) === 1 ? 'solicitud pendiente' : 'solicitudes pendientes' ?></span>
+        </div>
+
+        <p class="regla-salon"><?= icono('dinero') ?>
+            <span><b>Regla del salón:</b> la fecha es para el primer cliente que hace el anticipo del 50 %.
+            Si dos piden el mismo día, confirma por WhatsApp quién pagó primero y aprueba esa solicitud.</span></p>
+
+        <?php foreach ($diasConflicto as $fecha => $grupo):
+            $ocupado = (int)$grupo[0]['dia_ocupado'] > 0;
+            $primera = min(array_column($grupo, 'fecha_solicitud')); ?>
+            <section class="conflicto <?= $ocupado ? 'ocupado' : '' ?>">
+                <header class="conflicto-cabeza">
+                    <div class="conflicto-fecha"><b><?= date('d', strtotime($fecha)) ?></b><span><?= substr(MESES[date('n', strtotime($fecha)) - 1], 0, 3) ?> <?= date('Y', strtotime($fecha)) ?></span></div>
+                    <div>
+                        <h3><?= $ocupado ? 'Fecha ya confirmada para otro evento' : count($grupo) . ' solicitudes para el mismo día' ?></h3>
+                        <p><?= $ocupado
+                            ? 'Estas solicitudes llegaron para un día que ya está ocupado. Recházalas para avisar a los clientes.'
+                            : (count($grupo) === 2
+                                ? 'Al darle la fecha a una, la otra se rechaza automáticamente y el cliente lo ve en su panel.'
+                                : 'Al darle la fecha a una, las otras ' . (count($grupo) - 1) . ' se rechazan automáticamente y los clientes lo ven en su panel.') ?></p>
+                    </div>
+                    <span class="faltan">En <?= diasPara($fecha) ?> días</span>
+                </header>
+                <div class="candidatos">
+                    <?php foreach ($grupo as $c): ?>
+                        <article class="candidato">
+                            <div class="cand-top">
+                                <span class="avatar-mini"><?= e(mb_strtoupper(mb_substr($c['nombre_contacto'], 0, 1))) ?></span>
+                                <div>
+                                    <strong><?= e($c['nombre_contacto']) ?></strong>
+                                    <span class="sub-dato"><?= numeroReserva($c['id_reserva']) ?> · solicitada <?= fechaCorta($c['fecha_solicitud']) ?>, <?= date('g:i a', strtotime($c['fecha_solicitud'])) ?></span>
+                                </div>
+                                <?php if ($c['fecha_solicitud'] === $primera && !$ocupado): ?><span class="sello-primera">1.ª en pedir</span><?php endif; ?>
+                            </div>
+                            <dl>
+                                <dt>Evento</dt><dd><?= e($c['tipo_evento']) ?> · <?= (int)$c['invitados'] ?> invitados</dd>
+                                <dt>Hora</dt><dd><?= horaBonita($c['hora_evento']) ?></dd>
+                                <dt>Servicios</dt><dd><?= $c['servicios'] ? e($c['servicios']) : '—' ?></dd>
+                                <?php if ($c['notas']): ?><dt>Notas</dt><dd><?= nl2br(e($c['notas'])) ?></dd><?php endif; ?>
+                                <dt>Cliente</dt><dd><?= (int)$c['reservas_cliente'] ?> <?= (int)$c['reservas_cliente'] === 1 ? 'solicitud' : 'solicitudes' ?>
+                                    · <?= (int)$c['aprobadas_cliente'] ?> <?= (int)$c['aprobadas_cliente'] === 1 ? 'confirmada' : 'confirmadas' ?></dd>
+                            </dl>
+                            <div class="cand-acciones">
+                                <?php if ($c['telefono']): ?>
+                                    <a class="btn btn-borde btn-sm" target="_blank" rel="noopener"
+                                       href="https://wa.me/57<?= preg_replace('/\D/', '', $c['telefono']) ?>?text=<?= rawurlencode('Hola ' . $c['nombre_contacto'] . ', te escribimos de Eventos Mayra Ponce por tu solicitud ' . numeroReserva($c['id_reserva']) . ' para el ' . fechaCorta($fecha) . '. ¿Ya realizaste el anticipo del 50 %?') ?>">
+                                        <?= icono('whatsapp') ?> ¿Pagó anticipo?</a>
+                                <?php endif; ?>
+                                <form method="POST">
+                                    <input type="hidden" name="id_reserva" value="<?= (int)$c['id_reserva'] ?>">
+                                    <input type="hidden" name="volver" value="PanelAdmin.php?seccion=decisiones">
+                                    <?php if ($ocupado): ?>
+                                        <button class="btn btn-oscuro btn-sm" name="accion" value="rechazar"><?= icono('x') ?> Rechazar</button>
+                                    <?php else: ?>
+                                        <button class="btn btn-sm" name="accion" value="aprobar"
+                                                onclick="return confirm('Se confirmará la solicitud de <?= e(addslashes($c['nombre_contacto'])) ?> y se <?= count($grupo) === 2 ? 'rechazará la otra solicitud' : 'rechazarán las otras ' . (count($grupo) - 1) ?> del <?= fechaNumerica($fecha) ?>. ¿Continuar?')">
+                                            <?= icono('check') ?> Darle la fecha</button>
+                                    <?php endif; ?>
+                                </form>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endforeach; ?>
+
+        <div class="cabecera" style="margin-top:<?= $diasConflicto ? '30px' : '0' ?>">
+            <h2 style="font-size:22px">Solicitudes sin conflicto</h2>
+        </div>
+        <div class="tabla-caja">
+            <table>
+                <thead><tr><th>Fecha</th><th>Cliente</th><th>Evento</th><th>Solicitada</th><th>Acciones</th></tr></thead>
+                <tbody>
+                <?php foreach ($pendientesSolas as $r): ?>
+                    <tr>
+                        <td><?= fechaCorta($r['fecha_evento']) ?><span class="sub-dato"><?= horaBonita($r['hora_evento']) ?> · en <?= diasPara($r['fecha_evento']) ?> días</span></td>
+                        <td><?= e($r['nombre_contacto']) ?><span class="sub-dato"><?= e($r['telefono'] ?: $r['correo_contacto']) ?></span></td>
+                        <td><?= e($r['tipo_evento']) ?><span class="sub-dato"><?= (int)$r['invitados'] ?> invitados · <?= numeroReserva($r['id_reserva']) ?></span></td>
+                        <td><?= fechaCorta($r['fecha_solicitud']) ?></td>
+                        <td class="acciones-celda">
+                            <button type="button" class="btn btn-oscuro btn-sm" onclick="verDetalles(this)" data-reserva="<?= datosReserva($r) ?>">Ver</button>
+                            <?= botonesEstado($r, 'PanelAdmin.php?seccion=decisiones') ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+                <?php if (!$pendientesSolas): ?><tr><td colspan="5" class="vacio">No hay más solicitudes por revisar. ¡Todo al día!</td></tr><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+<?php
+/* =====================================================
    CALENDARIO DE DISPONIBILIDAD
    ===================================================== */
-if ($seccion === 'calendario'):
+elseif ($seccion === 'calendario'):
     $mesParam = $_GET['mes'] ?? date('Y-m');
     if (!preg_match('/^\d{4}-\d{2}$/', $mesParam)) $mesParam = date('Y-m');
     [$anio, $mes] = array_map('intval', explode('-', $mesParam));

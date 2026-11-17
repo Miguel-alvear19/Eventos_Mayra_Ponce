@@ -46,7 +46,10 @@ class ClienteController {
 
         $this->iniciarSesionCliente($cliente->buscarPorCorreo($correo));
         flash('exito', '¡Tu cuenta fue creada! Bienvenida(o) a Eventos Mayra Ponce.');
-        redirigir('PanelCliente.php');
+        // Si venía de "Reservar mi fecha", sigue allí sin volver a escribir nada
+        $destino = $_SESSION['volver_a'] ?? 'PanelCliente.php';
+        unset($_SESSION['volver_a']);
+        redirigir($destino);
     }
 
     /*

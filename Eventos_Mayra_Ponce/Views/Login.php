@@ -58,7 +58,7 @@ require "partials/nav.php";
         <button type="button" onclick="this.closest('dialog').close()" aria-label="Cerrar"><?= icono('x') ?></button></div>
     <div class="modal-cuerpo">
         <p>Escríbenos y te ayudamos a recuperar el acceso a tu cuenta:</p>
-        <p><?= icono('correo') ?> <a href="mailto:<?= e(NEGOCIO_CORREO) ?>?subject=Recuperar%20contrase%C3%B1a"><?= e(NEGOCIO_CORREO) ?></a></p>
+        <?php if (NEGOCIO_CORREO !== ''): ?><p><?= icono('correo') ?> <a href="mailto:<?= e(NEGOCIO_CORREO) ?>?subject=Recuperar%20contrase%C3%B1a"><?= e(NEGOCIO_CORREO) ?></a></p><?php endif; ?>
         <p><?= icono('whatsapp') ?> <a target="_blank" rel="noopener" href="https://wa.me/<?= NEGOCIO_WHATSAPP ?>">WhatsApp <?= e(NEGOCIO_TELEFONO) ?></a></p>
     </div>
 </dialog>

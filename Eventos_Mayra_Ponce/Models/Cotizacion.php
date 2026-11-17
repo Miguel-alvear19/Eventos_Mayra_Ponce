@@ -27,6 +27,18 @@ class Cotizacion extends Modelo {
         );
     }
 
+    /* Cotización pedida desde una reserva confirmada.
+       PROVISIONAL: la tabla "cotizaciones" aún no tiene id_reserva, así que el número
+       de la reserva va al inicio del mensaje ("Reserva #0007 ..."). Cuando Miguel agregue
+       la columna, esta consulta pasa a ser: WHERE id_reserva = ? */
+    public function deReserva($idCliente, $idReserva) {
+        return $this->fila(
+            "SELECT * FROM cotizaciones WHERE id_cliente = ? AND mensaje LIKE ?
+             ORDER BY fecha_solicitud DESC LIMIT 1",
+            "is", $idCliente, 'Reserva ' . numeroReserva($idReserva) . '%'
+        );
+    }
+
     public function pendientesDeCliente($idCliente) {
         return (int)$this->fila(
             "SELECT COUNT(*) AS n FROM cotizaciones WHERE id_cliente = ? AND estado = 'Pendiente'",

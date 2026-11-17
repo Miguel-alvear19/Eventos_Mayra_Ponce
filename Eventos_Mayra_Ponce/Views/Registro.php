@@ -69,7 +69,7 @@ require "partials/nav.php";
            para gestionar tus reservas y cotizaciones y para contactarte sobre ellas.</p>
         <p>Una reserva solo queda confirmada cuando el salón la aprueba. Las solicitudes pendientes pueden cancelarse
            desde tu panel en cualquier momento.</p>
-        <p>Puedes pedir la eliminación de tus datos escribiendo a <?= e(NEGOCIO_CORREO) ?>.</p>
+        <p>Puedes pedir la eliminación de tus datos escribiéndonos por WhatsApp al <?= e(NEGOCIO_TELEFONO) ?>.</p>
     </div>
     <div class="modal-pie"><button class="btn" type="button" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>

@@ -51,6 +51,24 @@ class Reserva extends Modelo {
         );
     }
 
+    // Una reserva, solo si pertenece a ese cliente (para el panel de seguimiento)
+    public function obtenerDeCliente($idReserva, $idCliente) {
+        return $this->fila(
+            "SELECT * FROM reservas WHERE id_reserva = ? AND id_cliente = ?",
+            "ii", $idReserva, $idCliente
+        );
+    }
+
+    // Reservas confirmadas y futuras del cliente (las únicas que se pueden cotizar)
+    public function confirmadasPorCliente($idCliente) {
+        return $this->filas(
+            "SELECT * FROM reservas
+             WHERE id_cliente = ? AND estado = 'Aprobada' AND fecha_evento >= CURDATE()
+             ORDER BY fecha_evento",
+            "i", $idCliente
+        );
+    }
+
     // El cliente solo puede cancelar sus propias reservas pendientes o aprobadas a futuro
     public function cancelarDeCliente($idReserva, $idCliente) {
         return $this->ejecutar(
@@ -138,6 +156,84 @@ class Reserva extends Modelo {
             $dias[$f['fecha_evento']] = $f;
         }
         return $dias;
+    }
+
+    /*
+    =====================================
+    BANDEJA DE DECISIONES
+    =====================================
+    */
+    // Solicitudes pendientes futuras con datos del cliente (teléfono y cuántas reservas ha hecho)
+    public function pendientesFuturas() {
+        return $this->filas(
+            "SELECT r.*, c.telefono,
+                    (SELECT COUNT(*) FROM reservas x WHERE x.id_cliente = r.id_cliente) AS reservas_cliente,
+                    (SELECT COUNT(*) FROM reservas x WHERE x.id_cliente = r.id_cliente AND x.estado = 'Aprobada') AS aprobadas_cliente,
+                    (SELECT COUNT(*) FROM reservas a WHERE a.fecha_evento = r.fecha_evento AND a.estado = 'Aprobada') AS dia_ocupado
+             FROM reservas r JOIN clientes c ON c.id_cliente = r.id_cliente
+             WHERE r.estado = 'Pendiente' AND r.fecha_evento >= CURDATE()
+             ORDER BY r.fecha_evento, r.fecha_solicitud"
+        );
+    }
+
+    // Al aprobar una, las demás pendientes de ese día quedan rechazadas
+    public function rechazarOtrasDelDia($fecha, $exceptoId) {
+        return $this->ejecutar(
+            "UPDATE reservas SET estado = 'Rechazada'
+             WHERE fecha_evento = ? AND estado = 'Pendiente' AND id_reserva <> ?",
+            "si", $fecha, $exceptoId
+        );
+    }
+
+    /*
+    =====================================
+    RESUMEN DEL ADMINISTRADOR
+    =====================================
+    */
+    public function indicadores() {
+        return $this->fila(
+            "SELECT
+               SUM(estado = 'Pendiente' AND fecha_evento >= CURDATE())                               AS por_revisar,
+               SUM(estado = 'Aprobada' AND fecha_evento >= CURDATE())                                AS confirmados_futuros,
+               SUM(estado = 'Aprobada' AND YEAR(fecha_evento) = YEAR(CURDATE())
+                                       AND MONTH(fecha_evento) = MONTH(CURDATE()))                   AS confirmados_mes,
+               SUM(fecha_solicitud >= CURDATE() - INTERVAL 30 DAY)                                   AS solicitudes_30,
+               SUM(estado = 'Aprobada')                                                              AS aprobadas,
+               SUM(estado = 'Rechazada')                                                             AS rechazadas,
+               SUM(estado = 'Aprobada' AND fecha_evento < CURDATE())                                 AS realizados
+             FROM reservas"
+        );
+    }
+
+    public function proximosConfirmados($limite = 5) {
+        return $this->filas(
+            "SELECT r.*, c.telefono FROM reservas r JOIN clientes c ON c.id_cliente = r.id_cliente
+             WHERE r.estado = 'Aprobada' AND r.fecha_evento >= CURDATE()
+             ORDER BY r.fecha_evento, r.hora_evento LIMIT ?",
+            "i", $limite
+        );
+    }
+
+    // Últimos 6 meses: solicitudes recibidas y eventos confirmados (por mes de solicitud)
+    public function actividadSeisMeses() {
+        $r = $this->filas(
+            "SELECT DATE_FORMAT(fecha_solicitud, '%Y-%m') AS ym,
+                    COUNT(*) AS recibidas, SUM(estado = 'Aprobada') AS confirmadas
+             FROM reservas
+             WHERE fecha_solicitud >= DATE_FORMAT(CURDATE() - INTERVAL 5 MONTH, '%Y-%m-01')
+             GROUP BY ym"
+        );
+        $porMes = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $ym = date('Y-m', strtotime("first day of -$i month"));
+            $porMes[$ym] = ['recibidas' => 0, 'confirmadas' => 0];
+        }
+        foreach ($r as $f) {
+            if (isset($porMes[$f['ym']])) {
+                $porMes[$f['ym']] = ['recibidas' => (int)$f['recibidas'], 'confirmadas' => (int)$f['confirmadas']];
+            }
+        }
+        return $porMes;
     }
 
     /*

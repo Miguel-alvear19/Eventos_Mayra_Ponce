@@ -10,22 +10,33 @@ if (session_status() === PHP_SESSION_NONE) {
 
 date_default_timezone_set('America/Bogota');
 
-const TIPOS_EVENTO = ['Boda', 'Cumpleaños', 'Evento social', 'Evento empresarial'];
+// Lista provisional: se ajusta con lo que confirme la dueña del salón
+const TIPOS_EVENTO = ['Boda', 'Quinceañera', 'Cumpleaños', 'Baby shower', 'Grado', 'Aniversario', 'Bautizo o primera comunión', 'Evento empresarial', 'Otro'];
 const SERVICIOS    = ['Decoración', 'Mobiliario y menaje', 'Catering', 'Sonido e iluminación', 'Fotografía y video', 'Logística completa'];
 const PRESUPUESTOS = ['Hasta $3.000.000', '$3.000.000 - $6.000.000', '$6.000.000 - $10.000.000', 'Más de $10.000.000'];
-// ---- DATOS DEL NEGOCIO (cámbialos por los reales; se muestran en el inicio y el pie) ----
-const NEGOCIO_TELEFONO  = '+57 300 123 4567';
-const NEGOCIO_WHATSAPP  = '573001234567';           // solo números, con indicativo
-const NEGOCIO_CORREO    = 'contacto@eventosmayraponce.com';
-const NEGOCIO_DIRECCION = 'Dirección del salón, Ciudad';
-const NEGOCIO_HORARIO   = 'Lunes a sábado, 9:00 a. m. – 6:00 p. m.';
-const NEGOCIO_CAPACIDAD = 250;                       // invitados máximo
+// ---- DATOS DEL NEGOCIO (teléfono, dirección y redes confirmados por la dueña; correo, horario y capacidad pendientes) ----
+const NEGOCIO_TELEFONO  = '+57 318 401 6922';
+const NEGOCIO_WHATSAPP  = '573184016922';           // solo números, con indicativo
+const NEGOCIO_CORREO    = '';                        // pendiente: la dueña no ha dado un correo (vacío = no se muestra)
+const NEGOCIO_DIRECCION = 'Calle 1ra, Carrera 6, Antigua Embajada Vallenata, Buenaventura';
+const NEGOCIO_HORARIO   = 'Atendemos todos los días, de lunes a domingo';   // pendiente: horas exactas
+const NEGOCIO_CAPACIDAD = 250;                       // PENDIENTE de confirmar con la dueña (solo limita el formulario; no se muestra en el inicio)
 const REDES = [
-    'facebook'  => 'https://facebook.com/',
-    'instagram' => 'https://instagram.com/',
-    'tiktok'    => 'https://tiktok.com/',
-    'youtube'   => 'https://youtube.com/',
+    'facebook'  => 'https://www.facebook.com/share/1DsPYyVT3m/',
+    'instagram' => 'https://www.instagram.com/salondeeventosmayraponce',
+    'tiktok'    => 'https://vt.tiktok.com/ZSaTXF7yn/',
 ];
+
+// Carpeta raíz del proyecto (para calcular la versión de los archivos)
+define('RUTA_PROYECTO', dirname(__DIR__));
+
+/* Devuelve la ruta de un archivo con su versión al final.
+   Así el navegador no se queda con una copia vieja cuando cambiamos un estilo. */
+function recurso(string $relativa): string {
+    $disco  = RUTA_PROYECTO . '/' . ltrim($relativa, '/');
+    $version = is_file($disco) ? filemtime($disco) : date('Ymd');
+    return '../' . ltrim($relativa, '/') . '?v=' . $version;
+}
 
 const MESES        = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
@@ -54,12 +65,26 @@ function mostrarFlash() {
 function esCliente() { return isset($_SESSION['id_cliente']); }
 function esAdmin()   { return isset($_SESSION['id_admin']); }
 
-function requiereCliente() {
+function requiereCliente($mensaje = 'Inicia sesión para continuar.') {
     if (!esCliente()) {
-        $_SESSION['volver_a'] = basename($_SERVER['PHP_SELF']);
-        flash('info', 'Inicia sesión para continuar.');
+        // Recordamos la página (con sus datos, p. ej. ?tipo=Boda) para volver después de entrar
+        $consulta = $_SERVER['QUERY_STRING'] ?? '';
+        $_SESSION['volver_a'] = basename($_SERVER['PHP_SELF']) . ($consulta !== '' ? '?' . $consulta : '');
+        flash('info', $mensaje);
         redirigir('Login.php');
     }
+}
+
+// Número visible de una solicitud: 7 -> #0007
+function numeroReserva($id) {
+    return '#' . str_pad((string)(int)$id, 4, '0', STR_PAD_LEFT);
+}
+
+// Días que faltan para una fecha (negativo si ya pasó)
+function diasPara($iso) {
+    $hoy = new DateTime('today');
+    $dia = new DateTime($iso);
+    return (int)$hoy->diff($dia)->format('%r%a');
 }
 
 function requiereAdmin() {

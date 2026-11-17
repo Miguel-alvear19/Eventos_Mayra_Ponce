@@ -7,10 +7,12 @@
 $activo = $activo ?? '';
 $oscura = $oscura ?? false;
 $links  = [
-    'inicio'    => ['Inicio',    'Home.php'],
-    'servicios' => ['Servicios', 'Home.php#servicios'],
-    'galeria'   => ['Galería',   'Home.php#galeria'],
     'salon'     => ['El salón',  'Home.php#salon'],
+    'servicios' => ['Servicios', 'Home.php#servicios'],
+    'videos'    => ['Videos',    'Home.php#videos'],
+    'menu'      => ['Menú',      'Home.php#menu'],
+    'galeria'   => ['Galería',   'Home.php#galeria'],
+    'preguntas' => ['Preguntas', 'Home.php#preguntas'],
     'contacto'  => ['Contacto',  'Home.php#contacto'],
 ];
 if (esAdmin()) {
@@ -24,8 +26,8 @@ if (esAdmin()) {
 <header class="<?= $oscura ? 'topbar' : 'nav' ?>">
     <div class="<?= $oscura ? 'interior' : 'nav-interior' ?>" style="position:relative">
         <a class="logo" href="Home.php" aria-label="Eventos Mayra Ponce, ir al inicio">
-            <?php if ($oscura): ?><?= icono('corona', 'corona') ?><?php endif; ?>
-            <span class="logo-texto"><span class="l1">Eventos</span><span class="l2">Mayra Ponce</span></span>
+            <img class="logo-img" src="<?= recurso($oscura ? 'Imagenes/logo-claro.png' : 'Imagenes/logo.png') ?>"
+                 alt="Eventos Mayra Ponce" width="200" height="71">
         </a>
 
         <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false"
@@ -40,7 +42,7 @@ if (esAdmin()) {
 
         <div class="nav-acciones">
             <?php if (!esAdmin()): ?>
-                <a class="btn <?= $oscura ? '' : 'btn-cuadrado' ?>" href="SolicitarCotizacion.php"><?= icono('calendario') ?> Solicitar cotización</a>
+                <a class="btn <?= $oscura ? '' : 'btn-cuadrado' ?>" href="SolicitarReserva.php"><?= icono('calendario') ?> Reservar fecha</a>
             <?php endif; ?>
             <a class="nav-usuario" href="<?= $cuenta[0] ?>" title="<?= $cuenta[1] ?>" aria-label="<?= $cuenta[1] ?>"><?= icono('usuario') ?></a>
         </div>
