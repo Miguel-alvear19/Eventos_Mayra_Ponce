@@ -7,25 +7,25 @@
 $activo = $activo ?? '';
 $oscura = $oscura ?? false;
 $links  = [
-    'salon'     => ['El salón',  'Home.php#salon'],
-    'servicios' => ['Servicios', 'Home.php#servicios'],
-    'videos'    => ['Videos',    'Home.php#videos'],
-    'menu'      => ['Menú',      'Home.php#menu'],
-    'galeria'   => ['Galería',   'Home.php#galeria'],
-    'preguntas' => ['Preguntas', 'Home.php#preguntas'],
-    'contacto'  => ['Contacto',  'Home.php#contacto'],
+    'salon'     => ['El salón',  'inicio#salon'],
+    'servicios' => ['Servicios', 'inicio#servicios'],
+    'videos'    => ['Videos',    'inicio#videos'],
+    'menu'      => ['Menú',      'inicio#menu'],
+    'galeria'   => ['Galería',   'inicio#galeria'],
+    'preguntas' => ['Preguntas', 'inicio#preguntas'],
+    'contacto'  => ['Contacto',  'inicio#contacto'],
 ];
 if (esAdmin()) {
-    $cuenta = ['PanelAdmin.php', 'Panel administrativo'];
+    $cuenta = ['admin', 'Panel administrativo'];
 } elseif (esCliente()) {
-    $cuenta = ['PanelCliente.php', 'Mi panel'];
+    $cuenta = ['mi-panel', 'Mi panel'];
 } else {
-    $cuenta = ['Login.php', 'Iniciar sesión'];
+    $cuenta = ['login', 'Iniciar sesión'];
 }
 ?>
 <header class="<?= $oscura ? 'topbar' : 'nav' ?>">
     <div class="<?= $oscura ? 'interior' : 'nav-interior' ?>" style="position:relative">
-        <a class="logo" href="Home.php" aria-label="Eventos Mayra Ponce, ir al inicio">
+        <a class="logo" href="<?= url('inicio') ?>" aria-label="Eventos Mayra Ponce, ir al inicio">
             <img class="logo-img" src="<?= recurso($oscura ? 'Imagenes/logo-claro.png' : 'Imagenes/logo.png') ?>"
                  alt="Eventos Mayra Ponce" width="200" height="71">
         </a>
@@ -36,15 +36,15 @@ if (esAdmin()) {
         </button>
         <ul class="nav-links">
             <?php foreach ($links as $clave => [$texto, $url]): ?>
-                <li><a href="<?= $url ?>" class="<?= $activo === $clave ? 'activo' : '' ?>"><?= $texto ?></a></li>
+                <li><a href="<?= url($url) ?>" class="<?= $activo === $clave ? 'activo' : '' ?>"><?= $texto ?></a></li>
             <?php endforeach; ?>
         </ul>
 
         <div class="nav-acciones">
             <?php if (!esAdmin()): ?>
-                <a class="btn <?= $oscura ? '' : 'btn-cuadrado' ?>" href="SolicitarReserva.php"><?= icono('calendario') ?> Reservar fecha</a>
+                <a class="btn <?= $oscura ? '' : 'btn-cuadrado' ?>" href="<?= url('reservar') ?>"><?= icono('calendario') ?> Reservar fecha</a>
             <?php endif; ?>
-            <a class="nav-usuario" href="<?= $cuenta[0] ?>" title="<?= $cuenta[1] ?>" aria-label="<?= $cuenta[1] ?>"><?= icono('usuario') ?></a>
+            <a class="nav-usuario" href="<?= url($cuenta[0]) ?>" title="<?= $cuenta[1] ?>" aria-label="<?= $cuenta[1] ?>"><?= icono('usuario') ?></a>
         </div>
     </div>
 </header>

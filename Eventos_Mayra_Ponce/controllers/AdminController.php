@@ -17,7 +17,7 @@ class AdminController {
     */
     public function procesar() {
         $accion = $_POST['accion'] ?? '';
-        $volver = $_POST['volver'] ?? 'PanelAdmin.php';
+        $volver = $_POST['volver'] ?? 'admin';
 
         switch ($accion) {
             case 'aprobar':        $this->cambiarEstadoReserva('Aprobada');  break;
@@ -29,7 +29,7 @@ class AdminController {
             case 'password':       $this->cambiarPassword();                 break;
         }
         // Solo se permite volver a una página del propio panel
-        redirigir(str_starts_with($volver, 'PanelAdmin.php') ? $volver : 'PanelAdmin.php');
+        redirigir(preg_match('~^admin([?#]|$)~', $volver) ? $volver : 'admin');
     }
 
     private function cambiarEstadoReserva($estado) {

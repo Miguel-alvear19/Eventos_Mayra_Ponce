@@ -47,7 +47,7 @@ class ClienteController {
         $this->iniciarSesionCliente($cliente->buscarPorCorreo($correo));
         flash('exito', '¡Tu cuenta fue creada! Bienvenida(o) a Eventos Mayra Ponce.');
         // Si venía de "Reservar mi fecha", sigue allí sin volver a escribir nada
-        $destino = $_SESSION['volver_a'] ?? 'PanelCliente.php';
+        $destino = $_SESSION['volver_a'] ?? 'mi-panel';
         unset($_SESSION['volver_a']);
         redirigir($destino);
     }
@@ -74,7 +74,7 @@ class ClienteController {
             $_SESSION['id_admin']     = $admin['id_admin'];
             $_SESSION['nombre_admin'] = $admin['nombre'];
             $this->recordar();
-            redirigir('PanelAdmin.php');
+            redirigir('admin');
         }
 
         // 2. ¿Es cliente?
@@ -83,7 +83,7 @@ class ClienteController {
             $this->iniciarSesionCliente($datos);
             $this->recordar();
             // Si venía de una página que pedía sesión (p. ej. Solicitar reserva), vuelve allá
-            $destino = $_SESSION['volver_a'] ?? 'PanelCliente.php';
+            $destino = $_SESSION['volver_a'] ?? 'mi-panel';
             unset($_SESSION['volver_a']);
             redirigir($destino);
         }
@@ -124,7 +124,7 @@ class ClienteController {
             $_SESSION['nombre'] = $nombres;
             flash('exito', 'Tus datos se actualizaron.');
         }
-        redirigir('PanelCliente.php?seccion=perfil');
+        redirigir('mi-panel?seccion=perfil');
     }
 
     public function cambiarPassword() {
@@ -141,6 +141,6 @@ class ClienteController {
             $cliente->cambiarPassword($_SESSION['id_cliente'], $nueva);
             flash('exito', 'Tu contraseña se cambió correctamente.');
         }
-        redirigir('PanelCliente.php?seccion=perfil');
+        redirigir('mi-panel?seccion=perfil');
     }
 }

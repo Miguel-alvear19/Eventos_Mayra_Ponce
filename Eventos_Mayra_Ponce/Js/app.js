@@ -117,7 +117,6 @@ const reel = document.getElementById('reel');
 if (reel) {
     const video  = document.getElementById('reel-video');
     const segs   = [...reel.querySelectorAll('.reel-segs button')];
-    const btnPlay = reel.querySelector('.reel-play');
     const elNum  = reel.querySelector('.reel-num');
     const elTxt  = reel.querySelector('.reel-txt');
     const fin    = parseFloat(reel.dataset.fin) || 0;
@@ -162,28 +161,19 @@ if (reel) {
     reel.querySelector('.reel-ant').addEventListener('click', () => irA(parte - 1));
     reel.querySelector('.reel-sig').addEventListener('click', () => irA(parte + 1));
 
-    // Botón y clic sobre el video: pausar o reanudar
-    const alternar = () => { video.paused ? video.play().catch(() => {}) : video.pause(); };
-    btnPlay.addEventListener('click', alternar);
-    video.addEventListener('click', alternar);
-    const estado = () => {
-        btnPlay.classList.toggle('pausado', video.paused);
-        btnPlay.setAttribute('aria-label', video.paused ? 'Reproducir el video' : 'Pausar el video');
-    };
-    video.addEventListener('play', estado);
-    video.addEventListener('pause', estado);
-    estado();
-
-    // Solo se reproduce mientras se está viendo
+    // Reproducción automática: el usuario no puede pausarlo.
+    // Solo se detiene solo cuando sale de la pantalla (ahorra datos) y vuelve a correr al verse.
+    video.controls = false;
+    const reproducir = () => video.play().catch(() => {});
     if ('IntersectionObserver' in window) {
-        let pausadoPorElUsuario = false;
-        btnPlay.addEventListener('click', () => { pausadoPorElUsuario = video.paused; });
         new IntersectionObserver(entradas => entradas.forEach(en => {
-            if (en.isIntersecting) { if (!pausadoPorElUsuario) video.play().catch(() => {}); }
-            else video.pause();
+            en.isIntersecting ? reproducir() : video.pause();
         }), { threshold: 0.25 }).observe(reel);
+    } else {
+        reproducir();
     }
-    if (menosMovimiento) { video.pause(); video.controls = true; }
+    // Si el navegador lo pausa por su cuenta (p. ej. al volver a la pestaña), lo reanudamos
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) reproducir(); });
 
     // Si el servidor no permite saltar dentro del video, escondemos flechas y partes
     const revisarSaltos = () => {

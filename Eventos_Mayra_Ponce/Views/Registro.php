@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . "/Config/helpers.php";
 require_once dirname(__DIR__) . "/controllers/ClienteController.php";
 
-if (esCliente()) redirigir('PanelCliente.php');
+if (esCliente()) redirigir('mi-panel');
 
 $errores = [];
 if (isset($_POST['btnRegistrar'])) {
@@ -11,8 +11,8 @@ if (isset($_POST['btnRegistrar'])) {
 }
 
 $titulo = 'Crear cuenta';
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <main class="escena">
 
@@ -56,7 +56,7 @@ require "partials/nav.php";
 
         <button type="submit" name="btnRegistrar" class="btn btn-grande">Crear cuenta</button>
 
-        <p class="pie-tarjeta">¿Ya tienes cuenta? <a href="Login.php">Iniciar sesión</a></p>
+        <p class="pie-tarjeta">¿Ya tienes cuenta? <a href="<?= url('login') ?>">Iniciar sesión</a></p>
     </form>
 
 </main>
@@ -74,4 +74,4 @@ require "partials/nav.php";
     <div class="modal-pie"><button class="btn" type="button" onclick="this.closest('dialog').close()">Entendido</button></div>
 </dialog>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>

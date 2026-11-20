@@ -41,8 +41,8 @@ $galeria = [
 ];
 $visibles = 12;
 
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <main>
     <?= mostrarFlash() ?>
@@ -56,7 +56,7 @@ require "partials/nav.php";
                 <p class="h-intro">Bodas, quinceañeras, grados, baby showers y eventos empresariales bajo techos de tela,
                    candelabros de cristal y una luz cálida que se adapta a cada celebración.</p>
                 <div class="h-botones">
-                    <a class="btn" href="SolicitarReserva.php"><?= icono('calendario') ?> Reservar mi fecha</a>
+                    <a class="btn" href="<?= url('reservar') ?>"><?= icono('calendario') ?> Reservar mi fecha</a>
                     <a class="h-enlace" href="#salon">Conocer el salón <?= icono('flecha') ?></a>
                 </div>
                 <div class="h-nota">
@@ -69,10 +69,10 @@ require "partials/nav.php";
                 <span class="marco"></span>
                 <span class="sello">La vida son momentos</span>
                 <div class="h-img f1 revela" data-parallax="-18">
-                    <img src="../Imagenes/evento_salon_techo.jpg" alt="Salón con techo de telas, candelabros, flores blancas y mesas doradas">
+                    <img src="<?= recurso('Imagenes/evento_salon_techo.jpg') ?>" alt="Salón con techo de telas, candelabros, flores blancas y mesas doradas">
                 </div>
                 <div class="h-img f2 revela" data-parallax="26">
-                    <img src="../Imagenes/evento_sillas_doradas.jpg" alt="Sillas blancas con detalles dorados alrededor de una mesa de cristal">
+                    <img src="<?= recurso('Imagenes/evento_sillas_doradas.jpg') ?>" alt="Sillas blancas con detalles dorados alrededor de una mesa de cristal">
                 </div>
             </div>
         </div>
@@ -84,7 +84,7 @@ require "partials/nav.php";
             <?php for ($vuelta = 0; $vuelta < 2; $vuelta++): ?>
                 <ul <?= $vuelta ? 'aria-hidden="true"' : '' ?>>
                     <?php foreach (TIPOS_EVENTO as $tipo): if ($tipo === 'Otro') continue; ?>
-                        <li><a href="SolicitarReserva.php?tipo=<?= urlencode($tipo) ?>" <?= $vuelta ? 'tabindex="-1"' : '' ?>><?= e($tipo) ?></a></li>
+                        <li><a href="<?= url('reservar') ?>?tipo=<?= urlencode($tipo) ?>" <?= $vuelta ? 'tabindex="-1"' : '' ?>><?= e($tipo) ?></a></li>
                     <?php endforeach; ?>
                 </ul>
             <?php endfor; ?>
@@ -95,8 +95,8 @@ require "partials/nav.php";
     <section class="h-sec h-salon" id="salon">
         <div class="h-wrap">
             <figure class="aparecer">
-                <div class="h-img f-grande revela"><img src="../Imagenes/evento_mesa_flores.jpg" alt="Mesa larga con camino de flores blancas y sillas doradas" loading="lazy"></div>
-                <div class="h-img f-pequena revela"><img src="../Imagenes/evento_flores_blancas.jpg" alt="Arreglo de rosas y hortensias blancas" loading="lazy"></div>
+                <div class="h-img f-grande revela"><img src="<?= recurso('Imagenes/evento_mesa_flores.jpg') ?>" alt="Mesa larga con camino de flores blancas y sillas doradas" loading="lazy"></div>
+                <div class="h-img f-pequena revela"><img src="<?= recurso('Imagenes/evento_flores_blancas.jpg') ?>" alt="Arreglo de rosas y hortensias blancas" loading="lazy"></div>
             </figure>
             <div class="aparecer">
                 <p class="h-etiqueta">El salón</p>
@@ -165,9 +165,6 @@ require "partials/nav.php";
                         <source src="<?= recurso('Videos/reel.mp4') ?>" type="video/mp4">
                         <a href="<?= e(REDES['tiktok']) ?>">Ver los videos en TikTok</a>
                     </video>
-                    <button type="button" class="reel-play" aria-label="Pausar el video">
-                        <span class="ico-pausa"></span>
-                    </button>
                 </div>
 
                 <div class="reel-panel">
@@ -235,7 +232,7 @@ require "partials/nav.php";
             <div class="galeria" id="galeria-grid">
                 <?php foreach ($galeria as $i => [$archivo, $alt, $pie]): ?>
                     <figure class="<?= $i >= $visibles ? 'oculta' : '' ?>" data-i="<?= $i ?>">
-                        <img src="../Imagenes/<?= e($archivo) ?>" alt="<?= e($alt) ?>" loading="lazy">
+                        <img src="<?= recurso('Imagenes/' . $archivo) ?>" alt="<?= e($alt) ?>" loading="lazy">
                         <figcaption><?= e($pie) ?></figcaption>
                     </figure>
                 <?php endforeach; ?>
@@ -358,7 +355,7 @@ require "partials/nav.php";
         <div class="h-wrap aparecer">
             <p class="h-etiqueta">Tu fecha</p>
             <h2>¿Ya tienes <em>un día en mente?</em></h2>
-            <a class="btn" style="padding:16px 34px" href="SolicitarReserva.php"><?= icono('calendario') ?> Reservar mi fecha</a>
+            <a class="btn" style="padding:16px 34px" href="<?= url('reservar') ?>"><?= icono('calendario') ?> Reservar mi fecha</a>
         </div>
     </section>
 </main>
@@ -371,4 +368,4 @@ require "partials/nav.php";
     <button type="button" class="visor-x" onclick="this.closest('dialog').close()" aria-label="Cerrar"><?= icono('x') ?></button>
 </dialog>
 
-<?php $pie = 'completo'; require "partials/pie.php"; ?>
+<?php $pie = 'completo'; require __DIR__ . "/partials/pie.php"; ?>

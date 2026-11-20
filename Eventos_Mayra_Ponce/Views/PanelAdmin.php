@@ -35,7 +35,7 @@ $secciones = [
 ];
 $seccion = isset($secciones[$_GET['seccion'] ?? '']) ? $_GET['seccion'] : 'inicio';
 $query   = $_SERVER['QUERY_STRING'] ?? '';
-$volver  = 'PanelAdmin.php' . ($query !== '' ? '?' . $query : '');
+$volver  = 'admin' . ($query !== '' ? '?' . $query : '');
 $hoy     = date('Y-m-d');
 
 // Datos de una reserva para el modal "Ver detalles"
@@ -74,8 +74,8 @@ $titulo = 'Panel administrativo';
 $estilos = ['panel.css'];
 $claseBody = 'panel';
 $oscura = true;
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <div class="layout">
 
@@ -86,7 +86,7 @@ require "partials/nav.php";
                 <?php if ($contador): ?><span class="contador" title="Pendientes"><?= $contador ?></span><?php endif; ?>
             </a>
         <?php endforeach; ?>
-        <a href="Logout.php"><?= icono('salir') ?> Cerrar sesión</a>
+        <a href="<?= url('salir') ?>"><?= icono('salir') ?> Cerrar sesión</a>
         <div class="agradecimiento">Hola, <?= e($_SESSION['nombre_admin']) ?><?= icono('flor', 'hojas') ?></div>
     </nav>
 
@@ -260,7 +260,7 @@ elseif ($seccion === 'decisiones'):
                                 <?php endif; ?>
                                 <form method="POST">
                                     <input type="hidden" name="id_reserva" value="<?= (int)$c['id_reserva'] ?>">
-                                    <input type="hidden" name="volver" value="PanelAdmin.php?seccion=decisiones">
+                                    <input type="hidden" name="volver" value="admin?seccion=decisiones">
                                     <?php if ($ocupado): ?>
                                         <button class="btn btn-oscuro btn-sm" name="accion" value="rechazar"><?= icono('x') ?> Rechazar</button>
                                     <?php else: ?>
@@ -291,7 +291,7 @@ elseif ($seccion === 'decisiones'):
                         <td><?= fechaCorta($r['fecha_solicitud']) ?></td>
                         <td class="acciones-celda">
                             <button type="button" class="btn btn-oscuro btn-sm" onclick="verDetalles(this)" data-reserva="<?= datosReserva($r) ?>">Ver</button>
-                            <?= botonesEstado($r, 'PanelAdmin.php?seccion=decisiones') ?>
+                            <?= botonesEstado($r, 'admin?seccion=decisiones') ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -709,4 +709,4 @@ function verDetalles(boton) {
 }
 </script>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>

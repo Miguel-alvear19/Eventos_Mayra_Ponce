@@ -78,7 +78,7 @@ class ReservaController {
             $invitados, implode(', ', $servicios), $notas
         );
 
-        redirigir('PanelCliente.php?seccion=reserva&id=' . (int)$id . '&nueva=1');
+        redirigir('mi-panel?seccion=reserva&id=' . (int)$id . '&nueva=1');
     }
 
     /*
@@ -93,8 +93,8 @@ class ReservaController {
         flash($ok ? 'exito' : 'error', $ok ? 'La reserva fue cancelada.' : 'No se pudo cancelar esa reserva.');
 
         if (($_POST['volver'] ?? '') === 'detalle') {
-            redirigir('PanelCliente.php?seccion=reserva&id=' . $id);
+            redirigir('mi-panel?seccion=reserva&id=' . $id);
         }
-        redirigir('PanelCliente.php?seccion=reservas');
+        redirigir('mi-panel?seccion=reservas');
     }
 }

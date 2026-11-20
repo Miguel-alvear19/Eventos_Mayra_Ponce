@@ -30,12 +30,53 @@ const REDES = [
 // Carpeta raíz del proyecto (para calcular la versión de los archivos)
 define('RUTA_PROYECTO', dirname(__DIR__));
 
+/* ---- RUTAS CORTAS (las atiende index.php gracias al .htaccess) ----
+   dirección => vista dentro de Views/ */
+const RUTAS = [
+    'inicio'   => 'Home.php',
+    'login'    => 'Login.php',
+    'registro' => 'Registro.php',
+    'salir'    => 'Logout.php',
+    'mi-panel' => 'PanelCliente.php',
+    'admin'    => 'PanelAdmin.php',
+    'reservar' => 'SolicitarReserva.php',
+    'cotizar'  => 'SolicitarCotizacion.php',
+];
+
+// Dirección web de la carpeta del proyecto, p. ej. "/Eventos_Mayra_Ponce-1/Eventos_Mayra_Ponce"
+$__script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME'] ?? '');
+$__base   = defined('ENRUTADOR') ? dirname($__script) : dirname(dirname($__script));
+define('BASE_URL', rtrim(str_replace('\\', '/', $__base), '/'));
+unset($__script, $__base);
+
+/* Arma la dirección completa de una ruta corta:
+   url('inicio') -> /.../Eventos_Mayra_Ponce/
+   url('mi-panel?seccion=perfil') -> /.../Eventos_Mayra_Ponce/mi-panel?seccion=perfil
+   url('inicio#salon') -> /.../Eventos_Mayra_Ponce/#salon */
+function url(string $destino = 'inicio'): string {
+    if (preg_match('~^(https?:|/)~', $destino)) return $destino;   // ya es una dirección completa
+    $destino = preg_replace('~^inicio(?=$|[?#])~', '', $destino);
+    return BASE_URL . '/' . $destino;
+}
+
+// Si alguien entra por la dirección vieja (Views/Login.php), lo mandamos a la corta (/login)
+if (!defined('ENRUTADOR') && PHP_SAPI !== 'cli') {
+    $__vista = basename($_SERVER['SCRIPT_NAME'] ?? '');
+    $__ruta  = array_search($__vista, RUTAS, true);
+    if ($__ruta !== false && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+        $consulta = $_SERVER['QUERY_STRING'] ?? '';
+        header('Location: ' . url($__ruta) . ($consulta !== '' ? '?' . $consulta : ''), true, 301);
+        exit();
+    }
+    unset($__vista, $__ruta);
+}
+
 /* Devuelve la ruta de un archivo con su versión al final.
    Así el navegador no se queda con una copia vieja cuando cambiamos un estilo. */
 function recurso(string $relativa): string {
     $disco  = RUTA_PROYECTO . '/' . ltrim($relativa, '/');
     $version = is_file($disco) ? filemtime($disco) : date('Ymd');
-    return '../' . ltrim($relativa, '/') . '?v=' . $version;
+    return BASE_URL . '/' . ltrim($relativa, '/') . '?v=' . $version;
 }
 
 const MESES        = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -46,7 +87,7 @@ function e($texto) {
 }
 
 function redirigir($url) {
-    header("Location: $url");
+    header('Location: ' . url($url));
     exit();
 }
 
@@ -69,9 +110,9 @@ function requiereCliente($mensaje = 'Inicia sesión para continuar.') {
     if (!esCliente()) {
         // Recordamos la página (con sus datos, p. ej. ?tipo=Boda) para volver después de entrar
         $consulta = $_SERVER['QUERY_STRING'] ?? '';
-        $_SESSION['volver_a'] = basename($_SERVER['PHP_SELF']) . ($consulta !== '' ? '?' . $consulta : '');
+        $_SESSION['volver_a'] = (defined('RUTA_ACTUAL') ? RUTA_ACTUAL : 'inicio') . ($consulta !== '' ? '?' . $consulta : '');
         flash('info', $mensaje);
-        redirigir('Login.php');
+        redirigir('login');
     }
 }
 
@@ -90,7 +131,7 @@ function diasPara($iso) {
 function requiereAdmin() {
     if (!esAdmin()) {
         flash('info', 'Esta sección es solo para administradores.');
-        redirigir('Login.php');
+        redirigir('login');
     }
 }
 

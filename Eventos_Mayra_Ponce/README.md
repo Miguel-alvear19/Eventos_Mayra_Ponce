@@ -11,7 +11,9 @@ Hecho en PHP + MySQL (mysqli), sin frameworks, con estructura MVC sencilla.
 2. Abre phpMyAdmin → pestaña **SQL** → pega y ejecuta `Database/eventos_mayra_ponce.sql`.
    Crea la base y las tablas que falten; si ya tenías `clientes`, no la toca.
 3. Si tu MySQL tiene contraseña, cámbiala en `Config/Database.php`.
-4. Entra a `http://localhost/Eventos_Mayra_Ponce-1/Eventos_Mayra_Ponce/`
+4. Para la dirección corta, agrega al final de `C:/xampp/apache/conf/httpd.conf`:
+   `IncludeOptional "C:/xampp/htdocs/Eventos_Mayra_Ponce-1/Eventos_Mayra_Ponce/apache-alias.conf"` y reinicia Apache.
+5. Entra a `http://localhost/eventos-mayra-ponce/`
 
 **Administrador por defecto:** `admin@eventosmayraponce.com` / `Admin2026*`
 (entra por el mismo login; cambia la contraseña en *Configuración*).

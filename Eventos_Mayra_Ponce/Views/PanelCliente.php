@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'perfil':   (new ClienteController())->actualizarPerfil(); break;
         case 'password': (new ClienteController())->cambiarPassword();  break;
     }
-    redirigir('PanelCliente.php');
+    redirigir('mi-panel');
 }
 
 /*
@@ -50,7 +50,7 @@ if ($seccion === 'reserva') {
     $detalle = $reservaM->obtenerDeCliente((int)($_GET['id'] ?? 0), $idCliente);
     if (!$detalle) {
         flash('error', 'No encontramos esa reserva.');
-        redirigir('PanelCliente.php?seccion=reservas');
+        redirigir('mi-panel?seccion=reservas');
     }
 } elseif (!isset($secciones[$seccion])) {
     $seccion = 'inicio';
@@ -151,8 +151,8 @@ $titulo = $seccion === 'reserva' ? 'Seguimiento de tu reserva' : 'Mi panel';
 $estilos = ['panel.css'];
 $claseBody = 'panel';
 $oscura = true;
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <section class="banner">
     <h1>Hola, <?= e($cliente['nombres']) ?> <span aria-hidden="true">👋</span></h1>
@@ -165,7 +165,7 @@ require "partials/nav.php";
         <?php foreach ($secciones as $clave => [$texto, $ico]): ?>
             <a href="?seccion=<?= $clave ?>" class="<?= $menuActivo === $clave ? 'activo' : '' ?>"><?= icono($ico) ?> <?= $texto ?></a>
         <?php endforeach; ?>
-        <a href="Logout.php"><?= icono('salir') ?> Cerrar sesión</a>
+        <a href="<?= url('salir') ?>"><?= icono('salir') ?> Cerrar sesión</a>
         <div class="agradecimiento">Gracias por<br>confiar en nosotros <?= icono('corazon') ?><?= icono('flor', 'hojas') ?></div>
     </nav>
 
@@ -217,18 +217,18 @@ require "partials/nav.php";
                 <?php foreach ($proximas as $r) echo filaReserva($r, false); ?>
                 <?php if (!$proximas): ?>
                     <tr><td colspan="4" class="vacio">Aún no tienes reservas próximas.
-                        <a href="SolicitarReserva.php">¡Solicita la primera!</a></td></tr>
+                        <a href="<?= url('reservar') ?>">¡Solicita la primera!</a></td></tr>
                 <?php endif; ?>
                 </tbody>
             </table>
         </div>
 
         <div class="salon-card">
-            <img src="../Imagenes/evento_flores_blancas.jpg" alt="Salón de eventos decorado">
+            <img src="<?= recurso('Imagenes/evento_flores_blancas.jpg') ?>" alt="Salón de eventos decorado">
             <div>
                 <h2>Nuestro salón</h2>
                 <p>Un espacio elegante y versátil, perfecto para todo tipo de eventos.</p>
-                <a class="btn btn-borde" href="Home.php#salon">Conocer más <?= icono('flecha') ?></a>
+                <a class="btn btn-borde" href="<?= url('inicio') ?>#salon">Conocer más <?= icono('flecha') ?></a>
             </div>
         </div>
 
@@ -314,7 +314,7 @@ require "partials/nav.php";
                         <p>¡Tu fecha está confirmada! Ahora armamos tu paquete. Pide la cotización y te respondemos con el valor;
                            después, con el anticipo del 50 %, la fecha queda asegurada.</p>
                         <div class="botones">
-                            <a class="btn" href="SolicitarCotizacion.php?reserva=<?= (int)$r['id_reserva'] ?>"><?= icono('documento') ?> Cotizar mi evento</a>
+                            <a class="btn" href="<?= url('cotizar') ?>?reserva=<?= (int)$r['id_reserva'] ?>"><?= icono('documento') ?> Cotizar mi evento</a>
                             <button type="button" class="btn btn-borde" id="agregar-calendario"><?= icono('calendario') ?> Agregar a mi calendario</button>
                         </div>
                     <?php elseif ($cotizacion['estado'] === 'Pendiente'): ?>
@@ -338,7 +338,7 @@ require "partials/nav.php";
                 <?php elseif ($r['estado'] === 'Rechazada'): ?>
                     <p>Lo sentimos, ese día no podemos atender tu evento. Elige otra fecha y te ayudamos con gusto.</p>
                     <div class="botones">
-                        <a class="btn" href="SolicitarReserva.php?tipo=<?= urlencode($r['tipo_evento']) ?>"><?= icono('calendario') ?> Elegir otra fecha</a>
+                        <a class="btn" href="<?= url('reservar') ?>?tipo=<?= urlencode($r['tipo_evento']) ?>"><?= icono('calendario') ?> Elegir otra fecha</a>
                         <a class="btn btn-borde" target="_blank" rel="noopener" href="<?= $whatsappBase . rawurlencode('Hola, soy ' . $cliente['nombres'] . '. Mi solicitud ' . $refTexto . ' no quedó disponible. ¿Qué fechas cercanas tienen?') ?>"><?= icono('whatsapp') ?> Preguntar fechas</a>
                     </div>
 
@@ -346,12 +346,12 @@ require "partials/nav.php";
                     <p>Esta reserva fue cancelada. Si fue por un caso fortuito o de fuerza mayor y ya habías pagado,
                        escríbenos para mover la fecha o cambiar el tipo de evento.</p>
                     <div class="botones">
-                        <a class="btn" href="SolicitarReserva.php?tipo=<?= urlencode($r['tipo_evento']) ?>"><?= icono('mas') ?> Nueva solicitud</a>
+                        <a class="btn" href="<?= url('reservar') ?>?tipo=<?= urlencode($r['tipo_evento']) ?>"><?= icono('mas') ?> Nueva solicitud</a>
                     </div>
 
                 <?php else: ?>
                     <p>¡Gracias por celebrar con nosotros! Si quieres repetir la experiencia, aquí estamos.</p>
-                    <div class="botones"><a class="btn" href="SolicitarReserva.php"><?= icono('mas') ?> Nueva reserva</a></div>
+                    <div class="botones"><a class="btn" href="<?= url('reservar') ?>"><?= icono('mas') ?> Nueva reserva</a></div>
                 <?php endif; ?>
             </section>
 
@@ -402,7 +402,7 @@ require "partials/nav.php";
         <!-- ================= MIS RESERVAS ================= -->
         <div class="cabecera">
             <h2><?= icono('calendario') ?> Mis reservas</h2>
-            <a class="btn" href="SolicitarReserva.php"><?= icono('mas') ?> Nueva reserva</a>
+            <a class="btn" href="<?= url('reservar') ?>"><?= icono('mas') ?> Nueva reserva</a>
         </div>
         <div class="tabla-caja">
             <table>
@@ -433,7 +433,7 @@ require "partials/nav.php";
                         <?php if ($yaPidio): ?>
                             <?= etiquetaEstado($yaPidio['estado']) ?>
                         <?php else: ?>
-                            <a class="btn btn-sm" href="SolicitarCotizacion.php?reserva=<?= (int)$c['id_reserva'] ?>">Cotizar este evento</a>
+                            <a class="btn btn-sm" href="<?= url('cotizar') ?>?reserva=<?= (int)$c['id_reserva'] ?>">Cotizar este evento</a>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
@@ -442,7 +442,7 @@ require "partials/nav.php";
             <div class="cotizar-desde vacio-guiado">
                 <p><b>Primero reservamos tu fecha.</b> Cuando el salón confirme tu reserva, desde aquí pides la cotización
                    de tu paquete con un clic.</p>
-                <a class="btn btn-sm" href="SolicitarReserva.php"><?= icono('calendario') ?> Reservar mi fecha</a>
+                <a class="btn btn-sm" href="<?= url('reservar') ?>"><?= icono('calendario') ?> Reservar mi fecha</a>
             </div>
         <?php endif; ?>
 
@@ -512,4 +512,4 @@ require "partials/nav.php";
     </main>
 </div>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>

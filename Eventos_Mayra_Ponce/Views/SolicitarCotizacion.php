@@ -29,8 +29,8 @@ if ($cliente && isset($_REQUEST['reserva']) || isset($_POST['id_reserva'])) {
 $invitadosValor = valorPost('invitados', $reserva ? (string)max(30, (int)$reserva['invitados']) : '');
 
 $titulo = 'Solicitar cotización';
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <main>
     <section class="encabezado-pagina">
@@ -51,11 +51,11 @@ require "partials/nav.php";
                    <?= esCliente() ? 'a tu panel' : 'a tu correo' ?> muy pronto.</p>
                 <div class="acciones">
                     <?php if (esCliente()): ?>
-                        <a class="btn" href="PanelCliente.php?seccion=cotizaciones">Ver mis cotizaciones</a>
+                        <a class="btn" href="<?= url('mi-panel') ?>?seccion=cotizaciones">Ver mis cotizaciones</a>
                     <?php else: ?>
-                        <a class="btn" href="Registro.php">Crear cuenta para seguirla</a>
+                        <a class="btn" href="<?= url('registro') ?>">Crear cuenta para seguirla</a>
                     <?php endif; ?>
-                    <a class="btn btn-borde" href="Home.php">Volver al inicio</a>
+                    <a class="btn btn-borde" href="<?= url('inicio') ?>">Volver al inicio</a>
                 </div>
             </div>
         <?php else: ?>
@@ -76,7 +76,7 @@ require "partials/nav.php";
                         <strong><?= e(trim($cliente['nombres'] . ' ' . $cliente['apellidos'])) ?></strong>
                         <span><?= e($cliente['correo']) ?><?= $cliente['telefono'] ? ' · ' . e($cliente['telefono']) : '' ?></span>
                     </div>
-                    <a class="cambiar" href="PanelCliente.php?seccion=perfil">Editar</a>
+                    <a class="cambiar" href="<?= url('mi-panel') ?>?seccion=perfil">Editar</a>
                 </div>
             <?php endif; ?>
 
@@ -91,7 +91,7 @@ require "partials/nav.php";
 
             <?php if (!esCliente()): ?>
                 <!-- Sin sesión pedimos los datos de contacto -->
-                <p class="ayuda" style="margin:0 0 12px">¿Ya tienes cuenta? <a href="Login.php">Inicia sesión</a> y no tendrás que escribir tus datos.</p>
+                <p class="ayuda" style="margin:0 0 12px">¿Ya tienes cuenta? <a href="<?= url('login') ?>">Inicia sesión</a> y no tendrás que escribir tus datos.</p>
                 <label class="etiqueta" for="nombre">Nombre <span class="req">*</span></label>
                 <div class="campo"><?= icono('usuario') ?><input id="nombre" name="nombre" placeholder="Tu nombre" value="<?= e(valorPost('nombre')) ?>" required></div>
                 <div class="rejilla-2">
@@ -154,4 +154,4 @@ require "partials/nav.php";
     </div>
 </main>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>

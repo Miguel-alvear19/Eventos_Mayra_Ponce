@@ -14,7 +14,7 @@ $pie = $pie ?? 'simple';
         <a href="mailto:<?= e(NEGOCIO_CORREO) ?>"><?= icono('correo') ?> <?= e(NEGOCIO_CORREO) ?></a>
         <span class="sep"></span>
         <?php endif; ?>
-        <a href="Home.php#contacto"><?= icono('ubicacion') ?> Ubicación</a>
+        <a href="<?= url('inicio') ?>#contacto"><?= icono('ubicacion') ?> Ubicación</a>
         <div class="redes">
             <?php foreach (REDES as $red => $url): ?>
                 <a href="<?= e($url) ?>" target="_blank" rel="noopener" aria-label="<?= ucfirst($red) ?>"><?= icono($red) ?></a>

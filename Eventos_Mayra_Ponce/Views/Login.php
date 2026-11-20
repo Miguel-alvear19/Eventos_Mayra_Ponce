@@ -3,8 +3,8 @@ require_once dirname(__DIR__) . "/Config/helpers.php";
 require_once dirname(__DIR__) . "/controllers/ClienteController.php";
 
 // Si ya hay sesión, no tiene sentido mostrar el login
-if (esAdmin())   redirigir('PanelAdmin.php');
-if (esCliente()) redirigir('PanelCliente.php');
+if (esAdmin())   redirigir('admin');
+if (esCliente()) redirigir('mi-panel');
 
 $error = '';
 if (isset($_POST['btnLogin'])) {
@@ -13,8 +13,8 @@ if (isset($_POST['btnLogin'])) {
 }
 
 $titulo = 'Iniciar sesión';
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <main class="escena foto-angosta">
 
@@ -48,7 +48,7 @@ require "partials/nav.php";
 
         <button type="submit" name="btnLogin" class="btn btn-grande">Ingresar</button>
 
-        <p class="pie-tarjeta">¿No tienes cuenta? <a href="Registro.php">Crear cuenta</a></p>
+        <p class="pie-tarjeta">¿No tienes cuenta? <a href="<?= url('registro') ?>">Crear cuenta</a></p>
     </form>
 
 </main>
@@ -63,4 +63,4 @@ require "partials/nav.php";
     </div>
 </dialog>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>

@@ -1,0 +1,12 @@
+# Enrutador: toda dirección que no sea un archivo real (imágenes, estilos, videos...) la atiende index.php
+Options -Indexes
+RewriteEngine On
+RewriteBase /eventos-mayra-ponce/
+
+# La dirección larga de antes (/Eventos_Mayra_Ponce-1/Eventos_Mayra_Ponce/...) se manda a la corta
+RewriteCond %{REQUEST_URI} ^/Eventos_Mayra_Ponce-1/Eventos_Mayra_Ponce/?(.*)$ [NC]
+RewriteRule ^ /eventos-mayra-ponce/%1 [R=301,L,NE]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]

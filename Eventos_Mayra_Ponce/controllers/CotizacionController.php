@@ -68,7 +68,7 @@ class CotizacionController {
 
         if ($reserva) {
             flash('exito', 'Recibimos tu solicitud de cotización. Te avisamos en cuanto esté lista.');
-            redirigir('PanelCliente.php?seccion=reserva&id=' . (int)$reserva['id_reserva']);
+            redirigir('mi-panel?seccion=reserva&id=' . (int)$reserva['id_reserva']);
         }
         return [];
     }

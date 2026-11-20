@@ -30,8 +30,8 @@ $iconosServicio = [
 $titulo = 'Solicitar reserva';
 $estilos = ['panel.css'];
 $oscura = true;
-require "partials/head.php";
-require "partials/nav.php";
+require __DIR__ . "/partials/head.php";
+require __DIR__ . "/partials/nav.php";
 ?>
 <section class="banner banner-corto">
     <h1>Solicita <span>tu reserva</span></h1>
@@ -64,7 +64,7 @@ require "partials/nav.php";
                     <strong><?= e($nombreCuenta) ?></strong>
                     <span><?= e($cliente['correo']) ?><?= $faltaTelefono ? '' : ' · ' . e($cliente['telefono']) ?></span>
                 </div>
-                <a class="cambiar" href="PanelCliente.php?seccion=perfil">Editar mis datos</a>
+                <a class="cambiar" href="<?= url('mi-panel') ?>?seccion=perfil">Editar mis datos</a>
             </div>
 
             <?php if ($faltaTelefono): ?>
@@ -100,9 +100,9 @@ require "partials/nav.php";
                     <textarea class="area" id="notas" name="notas" rows="3" maxlength="1000" placeholder="Cuéntanos más sobre tu evento..."><?= e(valorPost('notas')) ?></textarea></div>
             </div>
             <div class="fotos">
-                <img src="../Imagenes/evento_boda_altar.jpg" alt="" loading="lazy">
-                <img src="../Imagenes/arco_globos.jpg" alt="" loading="lazy">
-                <img src="../Imagenes/fondo_castillo.jpg" alt="" loading="lazy">
+                <img src="<?= recurso('Imagenes/evento_boda_altar.jpg') ?>" alt="" loading="lazy">
+                <img src="<?= recurso('Imagenes/arco_globos.jpg') ?>" alt="" loading="lazy">
+                <img src="<?= recurso('Imagenes/fondo_castillo.jpg') ?>" alt="" loading="lazy">
             </div>
             <div class="acciones"><button type="button" class="btn" onclick="siguiente()">Continuar <?= icono('flecha') ?></button></div>
         </div>
@@ -205,4 +205,4 @@ function resumen() {
 revisarFecha();
 </script>
 
-<?php require "partials/pie.php"; ?>
+<?php require __DIR__ . "/partials/pie.php"; ?>
